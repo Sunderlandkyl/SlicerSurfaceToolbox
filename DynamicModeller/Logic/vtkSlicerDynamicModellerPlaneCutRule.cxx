@@ -18,9 +18,9 @@
 
 ==============================================================================*/
 
-#include "vtkSlicerParametricSurfacePlaneCutRule.h"
+#include "vtkSlicerDynamicModellerPlaneCutRule.h"
 
-#include "vtkMRMLParametricSurfaceEditorNode.h"
+#include "vtkMRMLDynamicModellerNode.h"
 
 // MRML includes
 #include <vtkMRMLMarkupsPlaneNode.h>
@@ -50,10 +50,10 @@
 #include <vtkTransformPolyDataFilter.h>
 
 //----------------------------------------------------------------------------
-vtkRuleNewMacro(vtkSlicerParametricSurfacePlaneCutRule);
+vtkRuleNewMacro(vtkSlicerDynamicModellerPlaneCutRule);
 
 //----------------------------------------------------------------------------
-vtkSlicerParametricSurfacePlaneCutRule::vtkSlicerParametricSurfacePlaneCutRule()
+vtkSlicerDynamicModellerPlaneCutRule::vtkSlicerDynamicModellerPlaneCutRule()
 {
   /////////
   // Inputs
@@ -155,17 +155,17 @@ vtkSlicerParametricSurfacePlaneCutRule::vtkSlicerParametricSurfacePlaneCutRule()
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerParametricSurfacePlaneCutRule::~vtkSlicerParametricSurfacePlaneCutRule()
+vtkSlicerDynamicModellerPlaneCutRule::~vtkSlicerDynamicModellerPlaneCutRule()
 = default;
 
 //----------------------------------------------------------------------------
-const char* vtkSlicerParametricSurfacePlaneCutRule::GetName()
+const char* vtkSlicerDynamicModellerPlaneCutRule::GetName()
 {
   return "Plane cut";
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerParametricSurfacePlaneCutRule::CreateEndCap(vtkPolyData* polyData)
+void vtkSlicerDynamicModellerPlaneCutRule::CreateEndCap(vtkPolyData* polyData)
 {
   // Now extract feature edges
   vtkNew<vtkFeatureEdges> boundaryEdges;
@@ -191,7 +191,7 @@ void vtkSlicerParametricSurfacePlaneCutRule::CreateEndCap(vtkPolyData* polyData)
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerParametricSurfacePlaneCutRule::RunInternal(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+bool vtkSlicerDynamicModellerPlaneCutRule::RunInternal(vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if (!this->HasRequiredInputs(surfaceEditorNode))
     {

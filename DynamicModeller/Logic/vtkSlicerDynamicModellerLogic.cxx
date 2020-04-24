@@ -19,13 +19,13 @@
 
 ==============================================================================*/
 
-// ParametricSurfaceEditor Logic includes
-#include "vtkSlicerParametricSurfaceEditorLogic.h"
-#include "vtkSlicerParametricSurfaceEditorRuleFactory.h"
+// DynamicModeller Logic includes
+#include "vtkSlicerDynamicModellerLogic.h"
+#include "vtkSlicerDynamicModellerRuleFactory.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
-#include <vtkMRMLParametricSurfaceEditorNode.h>
+#include <vtkMRMLDynamicModellerNode.h>
 
 // VTK includes
 #include <vtkIntArray.h>
@@ -36,26 +36,26 @@
 #include <cassert>
 
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkSlicerParametricSurfaceEditorLogic);
+vtkStandardNewMacro(vtkSlicerDynamicModellerLogic);
 
 //----------------------------------------------------------------------------
-vtkSlicerParametricSurfaceEditorLogic::vtkSlicerParametricSurfaceEditorLogic()
+vtkSlicerDynamicModellerLogic::vtkSlicerDynamicModellerLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkSlicerParametricSurfaceEditorLogic::~vtkSlicerParametricSurfaceEditorLogic()
+vtkSlicerDynamicModellerLogic::~vtkSlicerDynamicModellerLogic()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerDynamicModellerLogic::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
+void vtkSlicerDynamicModellerLogic::SetMRMLSceneInternal(vtkMRMLScene * newScene)
 {
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkMRMLScene::NodeAddedEvent);
@@ -66,21 +66,21 @@ void vtkSlicerParametricSurfaceEditorLogic::SetMRMLSceneInternal(vtkMRMLScene * 
 }
 
 //-----------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic::RegisterNodes()
+void vtkSlicerDynamicModellerLogic::RegisterNodes()
 {
   if (this->GetMRMLScene() == NULL)
     {
     vtkErrorMacro("Scene is invalid");
     return;
     }
-  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLParametricSurfaceEditorNode>::New());
+  this->GetMRMLScene()->RegisterNodeClass(vtkSmartPointer<vtkMRMLDynamicModellerNode>::New());
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic
+void vtkSlicerDynamicModellerLogic
 ::OnMRMLSceneNodeAdded(vtkMRMLNode* node)
 {
-  vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode = vtkMRMLParametricSurfaceEditorNode::SafeDownCast(node);
+  vtkMRMLDynamicModellerNode* surfaceEditorNode = vtkMRMLDynamicModellerNode::SafeDownCast(node);
   if (!surfaceEditorNode)
     {
     return;
@@ -93,23 +93,23 @@ void vtkSlicerParametricSurfaceEditorLogic
   this->Rules[surfaceEditorNode->GetID()] = nullptr;
   vtkNew<vtkIntArray> events;
   events->InsertNextValue(vtkCommand::ModifiedEvent);
-  events->InsertNextValue(vtkMRMLParametricSurfaceEditorNode::InputNodeModifiedEvent);
+  events->InsertNextValue(vtkMRMLDynamicModellerNode::InputNodeModifiedEvent);
   vtkObserveMRMLNodeEventsMacro(surfaceEditorNode, events);
-  this->UpdateParametricSurfaceEditorRule(surfaceEditorNode);
-  this->RunParametricSurfaceEditorRule(surfaceEditorNode);
+  this->UpdateDynamicModellerRule(surfaceEditorNode);
+  this->RunDynamicModellerRule(surfaceEditorNode);
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic
+void vtkSlicerDynamicModellerLogic
 ::OnMRMLSceneNodeRemoved(vtkMRMLNode* node)
 {
-  vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode = vtkMRMLParametricSurfaceEditorNode::SafeDownCast(node);
+  vtkMRMLDynamicModellerNode* surfaceEditorNode = vtkMRMLDynamicModellerNode::SafeDownCast(node);
   if (!surfaceEditorNode)
     {
     return;
     }
 
-  ParametricSurfaceEditorRuleList::iterator rule = this->Rules.find(surfaceEditorNode->GetID());
+  DynamicModellerRuleList::iterator rule = this->Rules.find(surfaceEditorNode->GetID());
   if (rule == this->Rules.end())
     {
     return;
@@ -118,7 +118,7 @@ void vtkSlicerParametricSurfaceEditorLogic
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic::OnMRMLSceneEndImport()
+void vtkSlicerDynamicModellerLogic::OnMRMLSceneEndImport()
 {
   if (!this->GetMRMLScene())
     {
@@ -126,27 +126,27 @@ void vtkSlicerParametricSurfaceEditorLogic::OnMRMLSceneEndImport()
     }
 
   std::vector<vtkMRMLNode*> parametericSurfaceNodes;
-  this->GetMRMLScene()->GetNodesByClass("vtkMRMLParametricSurfaceEditorNode", parametericSurfaceNodes);
+  this->GetMRMLScene()->GetNodesByClass("vtkMRMLDynamicModellerNode", parametericSurfaceNodes);
   for (vtkMRMLNode* node : parametericSurfaceNodes)
     {
-    vtkMRMLParametricSurfaceEditorNode* parametricSurfaceNode =
-      vtkMRMLParametricSurfaceEditorNode::SafeDownCast(node);
-    if (!parametricSurfaceNode)
+    vtkMRMLDynamicModellerNode* dynamicModellerNode =
+      vtkMRMLDynamicModellerNode::SafeDownCast(node);
+    if (!dynamicModellerNode)
       {
       continue;
       }
 
-    this->Rules[parametricSurfaceNode->GetID()] = nullptr;
+    this->Rules[dynamicModellerNode->GetID()] = nullptr;
     vtkNew<vtkIntArray> events;
     events->InsertNextValue(vtkCommand::ModifiedEvent);
-    events->InsertNextValue(vtkMRMLParametricSurfaceEditorNode::InputNodeModifiedEvent);
-    vtkObserveMRMLNodeEventsMacro(parametricSurfaceNode, events);
-    this->UpdateParametricSurfaceEditorRule(parametricSurfaceNode);
+    events->InsertNextValue(vtkMRMLDynamicModellerNode::InputNodeModifiedEvent);
+    vtkObserveMRMLNodeEventsMacro(dynamicModellerNode, events);
+    this->UpdateDynamicModellerRule(dynamicModellerNode);
     }
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData)
+void vtkSlicerDynamicModellerLogic::ProcessMRMLNodesEvents(vtkObject* caller, unsigned long event, void* callData)
 {
   Superclass::ProcessMRMLNodesEvents(caller, event, callData);
   if (!this->GetMRMLScene() || this->GetMRMLScene()->IsImporting())
@@ -154,7 +154,7 @@ void vtkSlicerParametricSurfaceEditorLogic::ProcessMRMLNodesEvents(vtkObject* ca
     return;
     }
 
-  vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode = vtkMRMLParametricSurfaceEditorNode::SafeDownCast(caller);
+  vtkMRMLDynamicModellerNode* surfaceEditorNode = vtkMRMLDynamicModellerNode::SafeDownCast(caller);
   if (!surfaceEditorNode)
     {
     return;
@@ -162,7 +162,7 @@ void vtkSlicerParametricSurfaceEditorLogic::ProcessMRMLNodesEvents(vtkObject* ca
 
   if (surfaceEditorNode && event == vtkCommand::ModifiedEvent)
     {
-    this->UpdateParametricSurfaceEditorRule(surfaceEditorNode);
+    this->UpdateDynamicModellerRule(surfaceEditorNode);
     if (surfaceEditorNode->GetContinuousUpdate() && this->HasCircularReference(surfaceEditorNode))
       {
       vtkWarningMacro("Circular reference detected. Disabling continuous update for: " << surfaceEditorNode->GetName());
@@ -173,23 +173,23 @@ void vtkSlicerParametricSurfaceEditorLogic::ProcessMRMLNodesEvents(vtkObject* ca
 
   if (surfaceEditorNode && surfaceEditorNode->GetContinuousUpdate())
     {
-    vtkSmartPointer<vtkSlicerParametricSurfaceEditorRule> rule = this->GetParametricSurfaceEditorRule(surfaceEditorNode);
+    vtkSmartPointer<vtkSlicerDynamicModellerRule> rule = this->GetDynamicModellerRule(surfaceEditorNode);
     if (rule)
       {
-      this->RunParametricSurfaceEditorRule(surfaceEditorNode);
+      this->RunDynamicModellerRule(surfaceEditorNode);
       }
     }
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerParametricSurfaceEditorLogic::HasCircularReference(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+bool vtkSlicerDynamicModellerLogic::HasCircularReference(vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if (!surfaceEditorNode)
     {
     vtkErrorMacro("Invalid input node!");
     return false;
     }
-  vtkSmartPointer<vtkSlicerParametricSurfaceEditorRule> rule = this->GetParametricSurfaceEditorRule(surfaceEditorNode);
+  vtkSmartPointer<vtkSlicerDynamicModellerRule> rule = this->GetDynamicModellerRule(surfaceEditorNode);
   if (!rule)
     {
     return false;
@@ -223,7 +223,7 @@ bool vtkSlicerParametricSurfaceEditorLogic::HasCircularReference(vtkMRMLParametr
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic::UpdateParametricSurfaceEditorRule(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+void vtkSlicerDynamicModellerLogic::UpdateDynamicModellerRule(vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if (!surfaceEditorNode)
     {
@@ -233,7 +233,7 @@ void vtkSlicerParametricSurfaceEditorLogic::UpdateParametricSurfaceEditorRule(vt
 
   MRMLNodeModifyBlocker blocker(surfaceEditorNode);
 
-  vtkSmartPointer<vtkSlicerParametricSurfaceEditorRule> rule = this->GetParametricSurfaceEditorRule(surfaceEditorNode);
+  vtkSmartPointer<vtkSlicerDynamicModellerRule> rule = this->GetDynamicModellerRule(surfaceEditorNode);
   if (!rule || strcmp(rule->GetName(), surfaceEditorNode->GetRuleName()) != 0)
     {
     // We are changing rule types, and should remove observers to the previous rule
@@ -252,8 +252,8 @@ void vtkSlicerParametricSurfaceEditorLogic::UpdateParametricSurfaceEditorRule(vt
     rule = nullptr;
     if (surfaceEditorNode->GetRuleName())
       {
-      rule = vtkSmartPointer<vtkSlicerParametricSurfaceEditorRule>::Take(
-        vtkSlicerParametricSurfaceEditorRuleFactory::GetInstance()->CreateRuleByName(surfaceEditorNode->GetRuleName()));
+      rule = vtkSmartPointer<vtkSlicerDynamicModellerRule>::Take(
+        vtkSlicerDynamicModellerRuleFactory::GetInstance()->CreateRuleByName(surfaceEditorNode->GetRuleName()));
       }
     this->Rules[surfaceEditorNode->GetID()] = rule;
     }
@@ -277,10 +277,10 @@ void vtkSlicerParametricSurfaceEditorLogic::UpdateParametricSurfaceEditorRule(vt
 }
 
 //---------------------------------------------------------------------------
-vtkSlicerParametricSurfaceEditorRule* vtkSlicerParametricSurfaceEditorLogic::GetParametricSurfaceEditorRule(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+vtkSlicerDynamicModellerRule* vtkSlicerDynamicModellerLogic::GetDynamicModellerRule(vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
-  vtkSmartPointer<vtkSlicerParametricSurfaceEditorRule> rule = nullptr;
-  ParametricSurfaceEditorRuleList::iterator ruleIt = this->Rules.find(surfaceEditorNode->GetID());
+  vtkSmartPointer<vtkSlicerDynamicModellerRule> rule = nullptr;
+  DynamicModellerRuleList::iterator ruleIt = this->Rules.find(surfaceEditorNode->GetID());
   if (ruleIt == this->Rules.end())
     {
     return nullptr;
@@ -289,7 +289,7 @@ vtkSlicerParametricSurfaceEditorRule* vtkSlicerParametricSurfaceEditorLogic::Get
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorLogic::RunParametricSurfaceEditorRule(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+void vtkSlicerDynamicModellerLogic::RunDynamicModellerRule(vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if (!surfaceEditorNode)
     {
@@ -301,7 +301,7 @@ void vtkSlicerParametricSurfaceEditorLogic::RunParametricSurfaceEditorRule(vtkMR
     return;
     }
 
-  vtkSmartPointer<vtkSlicerParametricSurfaceEditorRule> rule = this->GetParametricSurfaceEditorRule(surfaceEditorNode);
+  vtkSmartPointer<vtkSlicerDynamicModellerRule> rule = this->GetDynamicModellerRule(surfaceEditorNode);
   if (!rule)
     {
     vtkErrorMacro("Could not find rule with name: " << surfaceEditorNode->GetRuleName());

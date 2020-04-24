@@ -29,8 +29,8 @@
 #include <ctkDoubleSpinBox.h>
 
 // SlicerQt includes
-#include "qSlicerParametricSurfaceEditorModuleWidget.h"
-#include "ui_qSlicerParametricSurfaceEditorModuleWidget.h"
+#include "qSlicerDynamicModellerModuleWidget.h"
+#include "ui_qSlicerDynamicModellerModuleWidget.h"
 
 // MRML includes
 #include <vtkMRMLScene.h>
@@ -39,49 +39,49 @@
 // VTK includes
 #include <vtkStringArray.h>
 
-// ParametricSurfaceEditor Logic includes
-#include <vtkSlicerParametricSurfaceEditorLogic.h>
-#include <vtkSlicerParametricSurfaceEditorRuleFactory.h>
+// DynamicModeller Logic includes
+#include <vtkSlicerDynamicModellerLogic.h>
+#include <vtkSlicerDynamicModellerRuleFactory.h>
 
-// ParametricSurfaceEditor MRML includes
-#include <vtkMRMLParametricSurfaceEditorNode.h>
+// DynamicModeller MRML includes
+#include <vtkMRMLDynamicModellerNode.h>
 
 //-----------------------------------------------------------------------------
 /// \ingroup Slicer_QtModules_ExtensionTemplate
-class qSlicerParametricSurfaceEditorModuleWidgetPrivate: public Ui_qSlicerParametricSurfaceEditorModuleWidget
+class qSlicerDynamicModellerModuleWidgetPrivate: public Ui_qSlicerDynamicModellerModuleWidget
 {
 public:
-  qSlicerParametricSurfaceEditorModuleWidgetPrivate();
-  vtkWeakPointer<vtkMRMLParametricSurfaceEditorNode> ParametricSurfaceEditorNode{ nullptr };
+  qSlicerDynamicModellerModuleWidgetPrivate();
+  vtkWeakPointer<vtkMRMLDynamicModellerNode> DynamicModellerNode{ nullptr };
 
   std::string CurrentRuleName;
 };
 
 //-----------------------------------------------------------------------------
-// qSlicerParametricSurfaceEditorModuleWidgetPrivate methods
+// qSlicerDynamicModellerModuleWidgetPrivate methods
 
 //-----------------------------------------------------------------------------
-qSlicerParametricSurfaceEditorModuleWidgetPrivate::qSlicerParametricSurfaceEditorModuleWidgetPrivate()
+qSlicerDynamicModellerModuleWidgetPrivate::qSlicerDynamicModellerModuleWidgetPrivate()
 = default;
 
 //-----------------------------------------------------------------------------
-// qSlicerParametricSurfaceEditorModuleWidget methods
+// qSlicerDynamicModellerModuleWidget methods
 
 //-----------------------------------------------------------------------------
-qSlicerParametricSurfaceEditorModuleWidget::qSlicerParametricSurfaceEditorModuleWidget(QWidget* _parent)
+qSlicerDynamicModellerModuleWidget::qSlicerDynamicModellerModuleWidget(QWidget* _parent)
   : Superclass( _parent )
-  , d_ptr( new qSlicerParametricSurfaceEditorModuleWidgetPrivate )
+  , d_ptr( new qSlicerDynamicModellerModuleWidgetPrivate )
 {
 }
 
 //-----------------------------------------------------------------------------
-qSlicerParametricSurfaceEditorModuleWidget::~qSlicerParametricSurfaceEditorModuleWidget()
+qSlicerDynamicModellerModuleWidget::~qSlicerDynamicModellerModuleWidget()
 = default;
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::setup()
+void qSlicerDynamicModellerModuleWidget::setup()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
+  Q_D(qSlicerDynamicModellerModuleWidget);
   d->setupUi(this);
   this->Superclass::setup();
 
@@ -89,10 +89,10 @@ void qSlicerParametricSurfaceEditorModuleWidget::setup()
     this, SLOT(onParameterNodeChanged(vtkMRMLNode*)));
 
   d->RuleComboBox->clear();
-  vtkSlicerParametricSurfaceEditorRuleFactory* ruleFactory = vtkSlicerParametricSurfaceEditorRuleFactory::GetInstance();
+  vtkSlicerDynamicModellerRuleFactory* ruleFactory = vtkSlicerDynamicModellerRuleFactory::GetInstance();
   if (ruleFactory)
     {
-    std::vector<std::string> ruleNames = ruleFactory->GetParametricSurfaceEditorRuleNames();
+    std::vector<std::string> ruleNames = ruleFactory->GetDynamicModellerRuleNames();
     for (std::string ruleName : ruleNames)
       {
       d->RuleComboBox->addItem(ruleName.c_str(), ruleName.c_str());
@@ -108,30 +108,30 @@ void qSlicerParametricSurfaceEditorModuleWidget::setup()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::onParameterNodeChanged(vtkMRMLNode* node)
+void qSlicerDynamicModellerModuleWidget::onParameterNodeChanged(vtkMRMLNode* node)
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
+  Q_D(qSlicerDynamicModellerModuleWidget);
   if (!this->mrmlScene() || this->mrmlScene()->IsBatchProcessing())
     {
     return;
     }
 
-  vtkMRMLParametricSurfaceEditorNode* meshModifyNode = vtkMRMLParametricSurfaceEditorNode::SafeDownCast(node);
-  qvtkReconnect(d->ParametricSurfaceEditorNode, meshModifyNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
+  vtkMRMLDynamicModellerNode* meshModifyNode = vtkMRMLDynamicModellerNode::SafeDownCast(node);
+  qvtkReconnect(d->DynamicModellerNode, meshModifyNode, vtkCommand::ModifiedEvent, this, SLOT(updateWidgetFromMRML()));
 
-  d->ParametricSurfaceEditorNode = meshModifyNode;
+  d->DynamicModellerNode = meshModifyNode;
   this->updateWidgetFromMRML();
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::resetInputWidgets()
+void qSlicerDynamicModellerModuleWidget::resetInputWidgets()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  vtkSlicerParametricSurfaceEditorRule* rule = nullptr;
-  vtkSlicerParametricSurfaceEditorLogic* meshModifyLogic = vtkSlicerParametricSurfaceEditorLogic::SafeDownCast(this->logic());
-  if (meshModifyLogic && d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  vtkSlicerDynamicModellerRule* rule = nullptr;
+  vtkSlicerDynamicModellerLogic* meshModifyLogic = vtkSlicerDynamicModellerLogic::SafeDownCast(this->logic());
+  if (meshModifyLogic && d->DynamicModellerNode)
     {
-    rule = meshModifyLogic->GetParametricSurfaceEditorRule(d->ParametricSurfaceEditorNode);
+    rule = meshModifyLogic->GetDynamicModellerRule(d->DynamicModellerNode);
     }
 
   QList<QWidget*> widgets = d->InputNodesCollapsibleButton->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
@@ -189,14 +189,14 @@ void qSlicerParametricSurfaceEditorModuleWidget::resetInputWidgets()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::resetParameterWidgets()
+void qSlicerDynamicModellerModuleWidget::resetParameterWidgets()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  vtkSlicerParametricSurfaceEditorLogic* meshModifyLogic = vtkSlicerParametricSurfaceEditorLogic::SafeDownCast(this->logic());
-  vtkSlicerParametricSurfaceEditorRule* rule = nullptr;
-  if (meshModifyLogic && d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  vtkSlicerDynamicModellerLogic* meshModifyLogic = vtkSlicerDynamicModellerLogic::SafeDownCast(this->logic());
+  vtkSlicerDynamicModellerRule* rule = nullptr;
+  if (meshModifyLogic && d->DynamicModellerNode)
     {
-    rule = meshModifyLogic->GetParametricSurfaceEditorRule(d->ParametricSurfaceEditorNode);
+    rule = meshModifyLogic->GetDynamicModellerRule(d->DynamicModellerNode);
     }
 
   QList<QWidget*> widgets = d->ParametersCollapsibleButton->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
@@ -233,21 +233,21 @@ void qSlicerParametricSurfaceEditorModuleWidget::resetParameterWidgets()
     parameterLabel->setToolTip(description.c_str());
 
     QWidget* parameterSelector = nullptr;
-    if (type == vtkSlicerParametricSurfaceEditorRule::PARAMETER_BOOL)
+    if (type == vtkSlicerDynamicModellerRule::PARAMETER_BOOL)
       {
       QCheckBox* checkBox = new QCheckBox();
       parameterSelector = checkBox;
       connect(checkBox, SIGNAL(stateChanged(int)),
         this, SLOT(updateMRMLFromWidget()));
       }
-    else if (type == vtkSlicerParametricSurfaceEditorRule::PARAMETER_INT)
+    else if (type == vtkSlicerDynamicModellerRule::PARAMETER_INT)
       {
       QSpinBox* spinBox = new QSpinBox();
       connect(spinBox, SIGNAL(valueChanged(int)),
         this, SLOT(updateMRMLFromWidget()));
       parameterSelector = spinBox;
       }
-    else if (type == vtkSlicerParametricSurfaceEditorRule::PARAMETER_DOUBLE)
+    else if (type == vtkSlicerDynamicModellerRule::PARAMETER_DOUBLE)
       {
       ctkDoubleSpinBox* doubleSpinBox = new ctkDoubleSpinBox();
       connect(doubleSpinBox, SIGNAL(valueChanged(double)),
@@ -270,14 +270,14 @@ void qSlicerParametricSurfaceEditorModuleWidget::resetParameterWidgets()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::resetOutputWidgets()
+void qSlicerDynamicModellerModuleWidget::resetOutputWidgets()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  vtkSlicerParametricSurfaceEditorLogic* meshModifyLogic = vtkSlicerParametricSurfaceEditorLogic::SafeDownCast(this->logic());
-  vtkSlicerParametricSurfaceEditorRule* rule = nullptr;
-  if (meshModifyLogic && d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  vtkSlicerDynamicModellerLogic* meshModifyLogic = vtkSlicerDynamicModellerLogic::SafeDownCast(this->logic());
+  vtkSlicerDynamicModellerRule* rule = nullptr;
+  if (meshModifyLogic && d->DynamicModellerNode)
     {
-    rule = meshModifyLogic->GetParametricSurfaceEditorRule(d->ParametricSurfaceEditorNode);
+    rule = meshModifyLogic->GetDynamicModellerRule(d->DynamicModellerNode);
     }
 
   QList<QWidget*> widgets = d->OutputNodesCollapsibleButton->findChildren<QWidget*>(QString(), Qt::FindDirectChildrenOnly);
@@ -335,10 +335,10 @@ void qSlicerParametricSurfaceEditorModuleWidget::resetOutputWidgets()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::updateInputWidgets()
+void qSlicerDynamicModellerModuleWidget::updateInputWidgets()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  if (!d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  if (!d->DynamicModellerNode)
     {
     return;
     }
@@ -347,7 +347,7 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateInputWidgets()
   for (qMRMLNodeComboBox* inputNodeSelector : inputNodeSelectors)
     {
     QString referenceRole = inputNodeSelector->property("ReferenceRole").toString();
-    vtkMRMLNode* referenceNode = d->ParametricSurfaceEditorNode->GetNodeReference(referenceRole.toUtf8());
+    vtkMRMLNode* referenceNode = d->DynamicModellerNode->GetNodeReference(referenceRole.toUtf8());
     bool wasBlocking = inputNodeSelector->blockSignals(true);
     inputNodeSelector->setCurrentNode(referenceNode);
     inputNodeSelector->blockSignals(wasBlocking);
@@ -356,16 +356,16 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateInputWidgets()
 
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::updateParameterWidgets()
+void qSlicerDynamicModellerModuleWidget::updateParameterWidgets()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  vtkSlicerParametricSurfaceEditorLogic* meshModifyLogic = vtkSlicerParametricSurfaceEditorLogic::SafeDownCast(this->logic());
-  vtkSlicerParametricSurfaceEditorRule* rule = nullptr;
-  if (meshModifyLogic && d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  vtkSlicerDynamicModellerLogic* meshModifyLogic = vtkSlicerDynamicModellerLogic::SafeDownCast(this->logic());
+  vtkSlicerDynamicModellerRule* rule = nullptr;
+  if (meshModifyLogic && d->DynamicModellerNode)
     {
-    rule = meshModifyLogic->GetParametricSurfaceEditorRule(d->ParametricSurfaceEditorNode);
+    rule = meshModifyLogic->GetDynamicModellerRule(d->DynamicModellerNode);
     }
-  if (!d->ParametricSurfaceEditorNode || rule == nullptr || rule->GetNumberOfInputParameters() == 0)
+  if (!d->DynamicModellerNode || rule == nullptr || rule->GetNumberOfInputParameters() == 0)
     {
     return;
     }
@@ -375,11 +375,11 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateParameterWidgets()
     std::string name = rule->GetNthInputParameterName(i);
     std::string description = rule->GetNthInputParameterDescription(i);
     std::string attributeName = rule->GetNthInputParameterAttributeName(i);
-    vtkVariant value = rule->GetNthInputParameterValue(i, d->ParametricSurfaceEditorNode);
+    vtkVariant value = rule->GetNthInputParameterValue(i, d->DynamicModellerNode);
     int type = rule->GetNthInputParameterType(i);
 
     QWidget* parameterSelector = d->ParametersCollapsibleButton->findChild<QWidget*>(attributeName.c_str());
-    if (type == vtkSlicerParametricSurfaceEditorRule::PARAMETER_BOOL)
+    if (type == vtkSlicerDynamicModellerRule::PARAMETER_BOOL)
       {
       QCheckBox* checkBox = qobject_cast<QCheckBox*>(parameterSelector);
       if (!checkBox)
@@ -393,7 +393,7 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateParameterWidgets()
       checkBox->setChecked(checked);
       checkBox->blockSignals(wasBlocking);
       }
-    else if (type == vtkSlicerParametricSurfaceEditorRule::PARAMETER_INT)
+    else if (type == vtkSlicerDynamicModellerRule::PARAMETER_INT)
       {
       QSpinBox* spinBox = qobject_cast<QSpinBox*>(parameterSelector);
       if (!spinBox)
@@ -405,7 +405,7 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateParameterWidgets()
       spinBox->setValue(value.ToInt());
       spinBox->blockSignals(wasBlocking);
       }
-    else if (type == vtkSlicerParametricSurfaceEditorRule::PARAMETER_DOUBLE)
+    else if (type == vtkSlicerDynamicModellerRule::PARAMETER_DOUBLE)
       {
       ctkDoubleSpinBox* doubleSpinBox = qobject_cast<ctkDoubleSpinBox*>(parameterSelector);
       if (!doubleSpinBox)
@@ -436,10 +436,10 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateParameterWidgets()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::updateOutputWidgets()
+void qSlicerDynamicModellerModuleWidget::updateOutputWidgets()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  if (!d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  if (!d->DynamicModellerNode)
     {
     return;
     }
@@ -448,7 +448,7 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateOutputWidgets()
   for (qMRMLNodeComboBox* outputNodeSelector : outputNodeSelectors)
     {
     QString referenceRole = outputNodeSelector->property("ReferenceRole").toString();
-    vtkMRMLNode* referenceNode = d->ParametricSurfaceEditorNode->GetNodeReference(referenceRole.toUtf8());
+    vtkMRMLNode* referenceNode = d->DynamicModellerNode->GetNodeReference(referenceRole.toUtf8());
     bool wasBlocking = outputNodeSelector->blockSignals(true);
     outputNodeSelector->setCurrentNode(referenceNode);
     outputNodeSelector->blockSignals(wasBlocking);
@@ -456,21 +456,21 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateOutputWidgets()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::updateWidgetFromMRML()
+void qSlicerDynamicModellerModuleWidget::updateWidgetFromMRML()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  vtkSlicerParametricSurfaceEditorLogic* meshModifyLogic = vtkSlicerParametricSurfaceEditorLogic::SafeDownCast(this->logic());
-  vtkSlicerParametricSurfaceEditorRule* rule = nullptr;
-  if (meshModifyLogic && d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  vtkSlicerDynamicModellerLogic* meshModifyLogic = vtkSlicerDynamicModellerLogic::SafeDownCast(this->logic());
+  vtkSlicerDynamicModellerRule* rule = nullptr;
+  if (meshModifyLogic && d->DynamicModellerNode)
     {
-    rule = meshModifyLogic->GetParametricSurfaceEditorRule(d->ParametricSurfaceEditorNode);
+    rule = meshModifyLogic->GetDynamicModellerRule(d->DynamicModellerNode);
     }
   d->ApplyButton->setEnabled(rule != nullptr);
 
   std::string ruleName = "";
-  if (d->ParametricSurfaceEditorNode && d->ParametricSurfaceEditorNode->GetRuleName())
+  if (d->DynamicModellerNode && d->DynamicModellerNode->GetRuleName())
     {
-    ruleName = d->ParametricSurfaceEditorNode->GetRuleName();
+    ruleName = d->DynamicModellerNode->GetRuleName();
     }
 
   if (ruleName != d->CurrentRuleName)
@@ -486,7 +486,7 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateWidgetFromMRML()
   this->updateOutputWidgets();
 
   int ruleIndex = 0;
-  if (!d->ParametricSurfaceEditorNode)
+  if (!d->DynamicModellerNode)
     {
     d->RuleComboBox->setEnabled(false);
     }
@@ -501,7 +501,7 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateWidgetFromMRML()
   d->RuleComboBox->blockSignals(wasBlocking);
 
   wasBlocking = d->ApplyButton->blockSignals(true);
-  if (d->ParametricSurfaceEditorNode && d->ParametricSurfaceEditorNode->GetContinuousUpdate())
+  if (d->DynamicModellerNode && d->DynamicModellerNode->GetContinuousUpdate())
     {
     d->ApplyButton->setCheckState(Qt::Checked);
     }
@@ -513,25 +513,25 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateWidgetFromMRML()
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::updateMRMLFromWidget()
+void qSlicerDynamicModellerModuleWidget::updateMRMLFromWidget()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  if (!d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  if (!d->DynamicModellerNode)
     {
     return;
     }
 
-  MRMLNodeModifyBlocker blocker(d->ParametricSurfaceEditorNode);
+  MRMLNodeModifyBlocker blocker(d->DynamicModellerNode);
 
   QString ruleName = d->RuleComboBox->currentData().toString();
-  d->ParametricSurfaceEditorNode->SetRuleName(ruleName.toUtf8());
-  d->ParametricSurfaceEditorNode->SetContinuousUpdate(d->ApplyButton->checkState() == Qt::Checked);
+  d->DynamicModellerNode->SetRuleName(ruleName.toUtf8());
+  d->DynamicModellerNode->SetContinuousUpdate(d->ApplyButton->checkState() == Qt::Checked);
 
-  vtkSlicerParametricSurfaceEditorLogic* parametricSurfaceEditorLogic = vtkSlicerParametricSurfaceEditorLogic::SafeDownCast(this->logic());
-  vtkSlicerParametricSurfaceEditorRule* rule = nullptr;
-  if (parametricSurfaceEditorLogic && d->ParametricSurfaceEditorNode)
+  vtkSlicerDynamicModellerLogic* dynamicModellerLogic = vtkSlicerDynamicModellerLogic::SafeDownCast(this->logic());
+  vtkSlicerDynamicModellerRule* rule = nullptr;
+  if (dynamicModellerLogic && d->DynamicModellerNode)
     {
-    rule = parametricSurfaceEditorLogic->GetParametricSurfaceEditorRule(d->ParametricSurfaceEditorNode);
+    rule = dynamicModellerLogic->GetDynamicModellerRule(d->DynamicModellerNode);
     }
   if (!rule)
     {
@@ -544,7 +544,7 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateMRMLFromWidget()
     {
     QString referenceRole = inputNodeSelector->property("ReferenceRole").toString();
     QString currentNodeID = inputNodeSelector->currentNodeID();
-    d->ParametricSurfaceEditorNode->SetAndObserveNodeReferenceID(referenceRole.toUtf8(), currentNodeID.toUtf8(), rule->GetNthInputNodeEvents(i));
+    d->DynamicModellerNode->SetAndObserveNodeReferenceID(referenceRole.toUtf8(), currentNodeID.toUtf8(), rule->GetNthInputNodeEvents(i));
     ++i;
     }
 
@@ -553,15 +553,15 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateMRMLFromWidget()
     {
     QString referenceRole = outputNodeSelector->property("ReferenceRole").toString();
     QString currentNodeID = outputNodeSelector->currentNodeID();
-    d->ParametricSurfaceEditorNode->SetNodeReferenceID(referenceRole.toUtf8(), currentNodeID.toUtf8());
+    d->DynamicModellerNode->SetNodeReferenceID(referenceRole.toUtf8(), currentNodeID.toUtf8());
     }
 
   d->ApplyButton->setToolTip("");
   d->ApplyButton->setCheckBoxUserCheckable(true);
   // If a node is selected in both the input and outputs, then disable continuous updates
-  if (parametricSurfaceEditorLogic->HasCircularReference(d->ParametricSurfaceEditorNode))
+  if (dynamicModellerLogic->HasCircularReference(d->DynamicModellerNode))
     {
-    d->ParametricSurfaceEditorNode->SetContinuousUpdate(false);
+    d->DynamicModellerNode->SetContinuousUpdate(false);
     d->ApplyButton->setToolTip("Output node detected in input. Continuous update is not availiable.");
     d->ApplyButton->setCheckBoxUserCheckable(false);    
     }
@@ -599,16 +599,16 @@ void qSlicerParametricSurfaceEditorModuleWidget::updateMRMLFromWidget()
     std::string attributeName = parameterSelector->property("AttributeName").toString().toStdString();
     if (attributeName != "")
       {
-      d->ParametricSurfaceEditorNode->SetAttribute(attributeName.c_str(), value.ToString());
+      d->DynamicModellerNode->SetAttribute(attributeName.c_str(), value.ToString());
       }
     }
 }
 
 //-----------------------------------------------------------------------------
-void qSlicerParametricSurfaceEditorModuleWidget::onApplyButtonClicked()
+void qSlicerDynamicModellerModuleWidget::onApplyButtonClicked()
 {
-  Q_D(qSlicerParametricSurfaceEditorModuleWidget);
-  if (!d->ParametricSurfaceEditorNode)
+  Q_D(qSlicerDynamicModellerModuleWidget);
+  if (!d->DynamicModellerNode)
     {
     return;
     }
@@ -621,6 +621,6 @@ void qSlicerParametricSurfaceEditorModuleWidget::onApplyButtonClicked()
     }
 
   /// Continuous update is off, trigger manual update.
-  vtkSlicerParametricSurfaceEditorLogic* meshModifyLogic = vtkSlicerParametricSurfaceEditorLogic::SafeDownCast(this->logic());
-  meshModifyLogic->RunParametricSurfaceEditorRule(d->ParametricSurfaceEditorNode);
+  vtkSlicerDynamicModellerLogic* meshModifyLogic = vtkSlicerDynamicModellerLogic::SafeDownCast(this->logic());
+  meshModifyLogic->RunDynamicModellerRule(d->DynamicModellerNode);
 }

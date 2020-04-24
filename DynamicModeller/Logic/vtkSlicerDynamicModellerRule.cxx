@@ -18,50 +18,50 @@
 
 ==============================================================================*/
 
-#include "vtkSlicerParametricSurfaceEditorRule.h"
+#include "vtkSlicerDynamicModellerRule.h"
 
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkSmartPointer.h>
 
 ///
-#include "vtkMRMLParametricSurfaceEditorNode.h"
+#include "vtkMRMLDynamicModellerNode.h"
 
 //----------------------------------------------------------------------------
-vtkSlicerParametricSurfaceEditorRule::vtkSlicerParametricSurfaceEditorRule()
+vtkSlicerDynamicModellerRule::vtkSlicerDynamicModellerRule()
 = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerParametricSurfaceEditorRule::~vtkSlicerParametricSurfaceEditorRule()
+vtkSlicerDynamicModellerRule::~vtkSlicerDynamicModellerRule()
 = default;
 
 //----------------------------------------------------------------------------
-vtkSlicerParametricSurfaceEditorRule* vtkSlicerParametricSurfaceEditorRule::Clone()
+vtkSlicerDynamicModellerRule* vtkSlicerDynamicModellerRule::Clone()
 {
-  vtkSlicerParametricSurfaceEditorRule* clone = this->CreateRuleInstance();
+  vtkSlicerDynamicModellerRule* clone = this->CreateRuleInstance();
   return clone;
 }
 
 //----------------------------------------------------------------------------
-int vtkSlicerParametricSurfaceEditorRule::GetNumberOfInputNodes()
+int vtkSlicerDynamicModellerRule::GetNumberOfInputNodes()
 {
   return this->InputNodeInfo.size();
 }
 
 //----------------------------------------------------------------------------
-int vtkSlicerParametricSurfaceEditorRule::GetNumberOfInputParameters()
+int vtkSlicerDynamicModellerRule::GetNumberOfInputParameters()
 {
   return this->InputParameterInfo.size();
 }
 
 //----------------------------------------------------------------------------
-int vtkSlicerParametricSurfaceEditorRule::GetNumberOfOutputNodes()
+int vtkSlicerDynamicModellerRule::GetNumberOfOutputNodes()
 {
   return this->OutputNodeInfo.size();
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeName(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthInputNodeName(int n)
 {
   if (n >= this->InputNodeInfo.size())
     {
@@ -72,7 +72,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeName(int n)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeDescription(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthInputNodeDescription(int n)
 {
   if (n >= this->InputNodeInfo.size())
     {
@@ -83,7 +83,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeDescription(int
 }
 
 //----------------------------------------------------------------------------
-vtkStringArray* vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeClassNames(int n)
+vtkStringArray* vtkSlicerDynamicModellerRule::GetNthInputNodeClassNames(int n)
 {
   if (n >= this->InputNodeInfo.size())
     {
@@ -94,7 +94,7 @@ vtkStringArray* vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeClassNames(
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeReferenceRole(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthInputNodeReferenceRole(int n)
 {
   if (n >= this->InputNodeInfo.size())
     {
@@ -105,7 +105,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeReferenceRole(i
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeRequired(int n)
+bool vtkSlicerDynamicModellerRule::GetNthInputNodeRequired(int n)
 {
   if (n >= this->InputNodeInfo.size())
     {
@@ -117,7 +117,7 @@ bool vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeRequired(int n)
 
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeName(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthOutputNodeName(int n)
 {
   if (n >= this->OutputNodeInfo.size())
     {
@@ -128,7 +128,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeName(int n)
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeDescription(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthOutputNodeDescription(int n)
 {
   if (n >= this->OutputNodeInfo.size())
     {
@@ -139,7 +139,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeDescription(in
 }
 
 //----------------------------------------------------------------------------
-vtkStringArray* vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeClassNames(int n)
+vtkStringArray* vtkSlicerDynamicModellerRule::GetNthOutputNodeClassNames(int n)
 {
   if (n >= this->OutputNodeInfo.size())
     {
@@ -150,7 +150,7 @@ vtkStringArray* vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeClassNames
 }
 
 //----------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeReferenceRole(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthOutputNodeReferenceRole(int n)
 {
   if (n >= this->OutputNodeInfo.size())
     {
@@ -161,7 +161,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeReferenceRole(
 }
 
 //----------------------------------------------------------------------------
-bool vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeRequired(int n)
+bool vtkSlicerDynamicModellerRule::GetNthOutputNodeRequired(int n)
 {
   if (n >= this->OutputNodeInfo.size())
     {
@@ -172,14 +172,14 @@ bool vtkSlicerParametricSurfaceEditorRule::GetNthOutputNodeRequired(int n)
 }
 
 //---------------------------------------------------------------------------
-void vtkSlicerParametricSurfaceEditorRule::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSlicerDynamicModellerRule::PrintSelf(ostream& os, vtkIndent indent)
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "Name:\t" << this->GetName() << std::endl;
 }
 
 //---------------------------------------------------------------------------
-vtkIntArray* vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeEvents(int n)
+vtkIntArray* vtkSlicerDynamicModellerRule::GetNthInputNodeEvents(int n)
 {
   if (n >= this->InputNodeInfo.size())
     {
@@ -190,7 +190,7 @@ vtkIntArray* vtkSlicerParametricSurfaceEditorRule::GetNthInputNodeEvents(int n)
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLNode* vtkSlicerParametricSurfaceEditorRule::GetNthInputNode(int n, vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+vtkMRMLNode* vtkSlicerDynamicModellerRule::GetNthInputNode(int n, vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if(!surfaceEditorNode)
     {
@@ -207,7 +207,7 @@ vtkMRMLNode* vtkSlicerParametricSurfaceEditorRule::GetNthInputNode(int n, vtkMRM
 }
 
 //---------------------------------------------------------------------------
-vtkMRMLNode* vtkSlicerParametricSurfaceEditorRule::GetNthOutputNode(int n, vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+vtkMRMLNode* vtkSlicerDynamicModellerRule::GetNthOutputNode(int n, vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if(!surfaceEditorNode)
     {
@@ -224,7 +224,7 @@ vtkMRMLNode* vtkSlicerParametricSurfaceEditorRule::GetNthOutputNode(int n, vtkMR
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterName(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthInputParameterName(int n)
 {
   if (n >= this->InputParameterInfo.size())
     {
@@ -235,7 +235,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterName(int n
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterDescription(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthInputParameterDescription(int n)
 {
   if (n >= this->InputParameterInfo.size())
     {
@@ -246,7 +246,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterDescriptio
 }
 
 //---------------------------------------------------------------------------
-std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterAttributeName(int n)
+std::string vtkSlicerDynamicModellerRule::GetNthInputParameterAttributeName(int n)
 {
   if (n >= this->InputParameterInfo.size())
     {
@@ -257,7 +257,7 @@ std::string vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterAttributeN
 }
 
 //---------------------------------------------------------------------------
-int vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterType(int n)
+int vtkSlicerDynamicModellerRule::GetNthInputParameterType(int n)
 {
   if (n >= this->InputParameterInfo.size())
     {
@@ -268,7 +268,7 @@ int vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterType(int n)
 }
 
 //---------------------------------------------------------------------------
-vtkVariant vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterValue(int n, vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+vtkVariant vtkSlicerDynamicModellerRule::GetNthInputParameterValue(int n, vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if (n >= this->InputParameterInfo.size())
     {
@@ -285,7 +285,7 @@ vtkVariant vtkSlicerParametricSurfaceEditorRule::GetNthInputParameterValue(int n
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerParametricSurfaceEditorRule::HasRequiredInputs(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+bool vtkSlicerDynamicModellerRule::HasRequiredInputs(vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   for (int i = 0; i < this->GetNumberOfInputNodes(); ++i)
     {
@@ -304,7 +304,7 @@ bool vtkSlicerParametricSurfaceEditorRule::HasRequiredInputs(vtkMRMLParametricSu
 }
 
 //---------------------------------------------------------------------------
-bool vtkSlicerParametricSurfaceEditorRule::Run(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode)
+bool vtkSlicerDynamicModellerRule::Run(vtkMRMLDynamicModellerNode* surfaceEditorNode)
 {
   if (!this->HasRequiredInputs(surfaceEditorNode))
     {

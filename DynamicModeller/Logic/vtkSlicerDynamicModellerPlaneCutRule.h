@@ -18,10 +18,10 @@
 
 ==============================================================================*/
 
-#ifndef __vtkSlicerParametricSurfacePlaneCutRule_h
-#define __vtkSlicerParametricSurfacePlaneCutRule_h
+#ifndef __vtkSlicerDynamicModellerPlaneCutRule_h
+#define __vtkSlicerDynamicModellerPlaneCutRule_h
 
-#include "vtkSlicerParametricSurfaceEditorModuleLogicExport.h"
+#include "vtkSlicerDynamicModellerModuleLogicExport.h"
 
 // VTK includes
 #include <vtkObject.h>
@@ -37,36 +37,36 @@ class vtkClipPolyData;
 class vtkDataObject;
 class vtkGeneralTransform;
 class vtkGeometryFilter;
-class vtkMRMLParametricSurfaceEditorNode;
+class vtkMRMLDynamicModellerNode;
 class vtkPlane;
 class vtkPolyData;
 class vtkThreshold;
 class vtkTransformPolyDataFilter;
 
-#include "vtkSlicerParametricSurfaceEditorRule.h"
+#include "vtkSlicerDynamicModellerRule.h"
 
-/// \brief Parametric surface rule for cutting a single surface mesh with a plane
+/// \brief Dynamic modelling rule for cutting a single surface mesh with planes
 ///
 /// Has two node inputs (Plane and Surface), and two outputs (Positive/Negative direction surface segments)
-class VTK_SLICER_PARAMETRICSURFACEEDITOR_MODULE_LOGIC_EXPORT vtkSlicerParametricSurfacePlaneCutRule : public vtkSlicerParametricSurfaceEditorRule
+class VTK_SLICER_DYNAMICMODELLER_MODULE_LOGIC_EXPORT vtkSlicerDynamicModellerPlaneCutRule : public vtkSlicerDynamicModellerRule
 {
 public:
-  static vtkSlicerParametricSurfacePlaneCutRule* New();
-  vtkSlicerParametricSurfaceEditorRule* CreateRuleInstance() override;
-  vtkTypeMacro(vtkSlicerParametricSurfacePlaneCutRule, vtkSlicerParametricSurfaceEditorRule);
+  static vtkSlicerDynamicModellerPlaneCutRule* New();
+  vtkSlicerDynamicModellerRule* CreateRuleInstance() override;
+  vtkTypeMacro(vtkSlicerDynamicModellerPlaneCutRule, vtkSlicerDynamicModellerRule);
 
   /// Human-readable name of the mesh modification rule
   const char* GetName() override;
 
   /// Run the plane cut on the input model node
-  bool RunInternal(vtkMRMLParametricSurfaceEditorNode* surfaceEditorNode) override;
+  bool RunInternal(vtkMRMLDynamicModellerNode* surfaceEditorNode) override;
 
   void CreateEndCap(vtkPolyData* surface);
 
 protected:
-  vtkSlicerParametricSurfacePlaneCutRule();
-  ~vtkSlicerParametricSurfacePlaneCutRule() override;
-  void operator=(const vtkSlicerParametricSurfacePlaneCutRule&);
+  vtkSlicerDynamicModellerPlaneCutRule();
+  ~vtkSlicerDynamicModellerPlaneCutRule() override;
+  void operator=(const vtkSlicerDynamicModellerPlaneCutRule&);
 
 protected:
   vtkSmartPointer<vtkTransformPolyDataFilter> InputModelToWorldTransformFilter;
@@ -85,4 +85,4 @@ protected:
   vtkSmartPointer<vtkGeneralTransform>        OutputNegativeWorldToModelTransform;
 };
 
-#endif // __vtkSlicerParametricSurfacePlaneCutRule_h
+#endif // __vtkSlicerDynamicModellerPlaneCutRule_h
