@@ -30,6 +30,7 @@
 
 // DynamicModeler logic includes
 #include "vtkSlicerDynamicModelerLogic.h"
+#include "vtkSlicerDynamicModelerMirrorRule.h"
 #include "vtkSlicerDynamicModelerPlaneCutRule.h"
 
 // DynamicModeler MRML includes
@@ -206,6 +207,12 @@ QIcon qSlicerSubjectHierarchyDynamicModelerPlugin::icon(vtkIdType itemID)
   if (strcmp(associatedNode->GetRuleName(), planeCutRule->GetName()) == 0)
     {
     return QIcon(":Icons/PlaneCut.png");
+    }
+
+  vtkNew<vtkSlicerDynamicModelerMirrorRule> mirrorRule;
+  if (strcmp(associatedNode->GetRuleName(), mirrorRule->GetName()) == 0)
+    {
+    return QIcon(":Icons/Mirror.png");
     }
 
   return QIcon();
