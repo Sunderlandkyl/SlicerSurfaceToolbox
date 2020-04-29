@@ -10,10 +10,12 @@ set(${KIT}_INCLUDE_DIRECTORIES
 set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}Logic.cxx
   vtkSlicer${MODULE_NAME}Logic.h
-  vtkSlicer${MODULE_NAME}Rule.cxx
-  vtkSlicer${MODULE_NAME}Rule.h
+  vtkSlicer${MODULE_NAME}MirrorRule.cxx
+  vtkSlicer${MODULE_NAME}MirrorRule.h
   vtkSlicer${MODULE_NAME}PlaneCutRule.cxx
   vtkSlicer${MODULE_NAME}PlaneCutRule.h
+  vtkSlicer${MODULE_NAME}Rule.cxx
+  vtkSlicer${MODULE_NAME}Rule.h
   vtkSlicer${MODULE_NAME}RuleFactory.cxx
   vtkSlicer${MODULE_NAME}RuleFactory.h
   )

@@ -46,8 +46,9 @@
 
 // DynamicModeler Logic includes
 #include <vtkSlicerDynamicModelerLogic.h>
-#include <vtkSlicerDynamicModelerRuleFactory.h>
+#include <vtkSlicerDynamicModelerMirrorRule.h>
 #include <vtkSlicerDynamicModelerPlaneCutRule.h>
+#include <vtkSlicerDynamicModelerRuleFactory.h>
 
 // DynamicModeler MRML includes
 #include <vtkMRMLDynamicModelerNode.h>
@@ -102,6 +103,9 @@ void qSlicerDynamicModelerModuleWidget::setup()
 
   vtkNew<vtkSlicerDynamicModelerPlaneCutRule> planeCutRule;
   this->addRuleButton(QIcon(":/Icons/DynamicModeler.png"), planeCutRule);
+
+  vtkNew<vtkSlicerDynamicModelerMirrorRule> mirrorRule;
+  this->addRuleButton(QIcon(":/Icons/Mirror.png"), mirrorRule);
 
   connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
     this, SLOT(onParameterNodeChanged()));

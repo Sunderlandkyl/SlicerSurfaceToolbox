@@ -19,9 +19,10 @@ limitations under the License.
 ==============================================================================*/
 
 // DynamicModeler includes
+#include "vtkSlicerDynamicModelerMirrorRule.h"
+#include "vtkSlicerDynamicModelerPlaneCutRule.h"
 #include "vtkSlicerDynamicModelerRuleFactory.h"
 #include "vtkSlicerDynamicModelerRule.h"
-#include "vtkSlicerDynamicModelerPlaneCutRule.h"
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -115,6 +116,7 @@ void vtkSlicerDynamicModelerRuleFactory::classInitialize()
   vtkSlicerDynamicModelerRuleFactoryInstance = vtkSlicerDynamicModelerRuleFactory::GetInstance();
 
   vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerPlaneCutRule>::New());
+  vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerMirrorRule>::New());
 }
 
 //----------------------------------------------------------------------------
