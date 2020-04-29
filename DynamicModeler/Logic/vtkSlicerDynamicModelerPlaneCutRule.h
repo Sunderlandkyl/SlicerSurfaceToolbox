@@ -32,11 +32,11 @@
 #include <string>
 #include <vector>
 
-class vtkClipClosedSurface;
 class vtkClipPolyData;
 class vtkDataObject;
 class vtkGeneralTransform;
 class vtkGeometryFilter;
+class vtkImplicitBoolean;
 class vtkMRMLDynamicModelerNode;
 class vtkPlane;
 class vtkPolyData;
@@ -61,6 +61,7 @@ public:
   /// Run the plane cut on the input model node
   bool RunInternal(vtkMRMLDynamicModelerNode* surfaceEditorNode) override;
 
+  /// Create an end cap on the clipped surface
   void CreateEndCap(vtkPolyData* surface);
 
 protected:
@@ -72,11 +73,7 @@ protected:
   vtkSmartPointer<vtkTransformPolyDataFilter> InputModelToWorldTransformFilter;
   vtkSmartPointer<vtkGeneralTransform>        InputModelNodeToWorldTransform;
 
-  vtkSmartPointer<vtkClipClosedSurface>       PlaneClipper;
-  vtkSmartPointer<vtkPlane>                   Plane;
-
-  vtkSmartPointer<vtkThreshold>               ThresholdFilter;
-  vtkSmartPointer<vtkGeometryFilter>          GeometryFilter;
+  vtkSmartPointer<vtkClipPolyData>            PlaneClipper;
 
   vtkSmartPointer<vtkTransformPolyDataFilter> OutputPositiveModelToWorldTransformFilter;
   vtkSmartPointer<vtkGeneralTransform>        OutputPositiveWorldToModelTransform;
