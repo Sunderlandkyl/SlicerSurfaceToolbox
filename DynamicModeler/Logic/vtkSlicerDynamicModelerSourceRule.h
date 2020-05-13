@@ -18,8 +18,8 @@
 
 ==============================================================================*/
 
-#ifndef __vtkSlicerDynamicModelerPlaneCutRule_h
-#define __vtkSlicerDynamicModelerPlaneCutRule_h
+#ifndef __vtkSlicerDynamicModelerMirrorRule_h
+#define __vtkSlicerDynamicModelerMirrorRule_h
 
 #include "vtkSlicerDynamicModelerModuleLogicExport.h"
 
@@ -34,16 +34,15 @@
 
 class vtkClipPolyData;
 class vtkDataObject;
-class vtkExtractPolyDataGeometry;
 class vtkGeneralTransform;
 class vtkGeometryFilter;
 class vtkImplicitBoolean;
-class vtkImplicitFunction;
 class vtkMRMLDynamicModelerNode;
 class vtkPlane;
-class vtkPlaneCollection;
 class vtkPolyData;
+class vtkReverseSense;
 class vtkThreshold;
+class vtkTransform;
 class vtkTransformPolyDataFilter;
 
 #include "vtkSlicerDynamicModelerRule.h"
@@ -51,12 +50,12 @@ class vtkTransformPolyDataFilter;
 /// \brief Dynamic modelling rule for cutting a single surface mesh with planes
 ///
 /// Has two node inputs (Plane and Surface), and two outputs (Positive/Negative direction surface segments)
-class VTK_SLICER_DYNAMICMODELER_MODULE_LOGIC_EXPORT vtkSlicerDynamicModelerPlaneCutRule : public vtkSlicerDynamicModelerRule
+class VTK_SLICER_DYNAMICMODELER_MODULE_LOGIC_EXPORT vtkSlicerDynamicModelerMirrorRule : public vtkSlicerDynamicModelerRule
 {
 public:
-  static vtkSlicerDynamicModelerPlaneCutRule* New();
+  static vtkSlicerDynamicModelerMirrorRule* New();
   vtkSlicerDynamicModelerRule* CreateRuleInstance() override;
-  vtkTypeMacro(vtkSlicerDynamicModelerPlaneCutRule, vtkSlicerDynamicModelerRule);
+  vtkTypeMacro(vtkSlicerDynamicModelerMirrorRule, vtkSlicerDynamicModelerRule);
 
   /// Human-readable name of the mesh modification rule
   const char* GetName() override;
@@ -64,27 +63,21 @@ public:
   /// Run the plane cut on the input model node
   bool RunInternal(vtkMRMLDynamicModelerNode* surfaceEditorNode) override;
 
-  /// Create an end cap on the clipped surface
-  void CreateEndCap(vtkPolyData* clippedSurface, vtkPlaneCollection* planes, vtkPolyData* originalPolyData, vtkImplicitFunction* cutFunction);
-
 protected:
-  vtkSlicerDynamicModelerPlaneCutRule();
-  ~vtkSlicerDynamicModelerPlaneCutRule() override;
-  void operator=(const vtkSlicerDynamicModelerPlaneCutRule&);
+  vtkSlicerDynamicModelerMirrorRule();
+  ~vtkSlicerDynamicModelerMirrorRule() override;
+  void operator=(const vtkSlicerDynamicModelerMirrorRule&);
 
 protected:
   vtkSmartPointer<vtkTransformPolyDataFilter> InputModelToWorldTransformFilter;
   vtkSmartPointer<vtkGeneralTransform>        InputModelNodeToWorldTransform;
 
-  vtkSmartPointer<vtkClipPolyData>            PlaneClipper;
+  vtkSmartPointer<vtkTransformPolyDataFilter> MirrorFilter;
+  vtkSmartPointer<vtkTransform>               MirrorTransform;
+  vtkSmartPointer<vtkReverseSense>            ReverseNormalFilter;
 
-  vtkSmartPointer<vtkExtractPolyDataGeometry>         PlaneExtractor;
-
-  vtkSmartPointer<vtkTransformPolyDataFilter> OutputPositiveModelToWorldTransformFilter;
-  vtkSmartPointer<vtkGeneralTransform>        OutputPositiveWorldToModelTransform;
-
-  vtkSmartPointer<vtkTransformPolyDataFilter> OutputNegativeModelToWorldTransformFilter;
-  vtkSmartPointer<vtkGeneralTransform>        OutputNegativeWorldToModelTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> OutputModelToWorldTransformFilter;
+  vtkSmartPointer<vtkGeneralTransform>        OutputWorldToModelTransform;
 };
 
-#endif // __vtkSlicerDynamicModelerPlaneCutRule_h
+#endif // __vtkSlicerDynamicModelerMirrorRule_h

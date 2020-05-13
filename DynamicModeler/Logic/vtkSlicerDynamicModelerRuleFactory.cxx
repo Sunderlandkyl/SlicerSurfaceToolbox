@@ -19,10 +19,15 @@ limitations under the License.
 ==============================================================================*/
 
 // DynamicModeler includes
+#include "vtkSlicerDynamicModelerAppendRule.h"
+#include "vtkSlicerDynamicModelerBoundaryCutRule.h"
+#include "vtkSlicerDynamicModelerCurveCutRule.h"
 #include "vtkSlicerDynamicModelerMirrorRule.h"
 #include "vtkSlicerDynamicModelerPlaneCutRule.h"
 #include "vtkSlicerDynamicModelerRuleFactory.h"
 #include "vtkSlicerDynamicModelerRule.h"
+
+#include "vtkSlicerFreeSurferExtrudeRule.h"
 
 // VTK includes
 #include <vtkObjectFactory.h>
@@ -117,6 +122,11 @@ void vtkSlicerDynamicModelerRuleFactory::classInitialize()
 
   vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerPlaneCutRule>::New());
   vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerMirrorRule>::New());
+  vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerCurveCutRule>::New());
+  vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerBoundaryCutRule>::New());
+  vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerAppendRule>::New());
+
+  vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerFreeSurferExtrudeRule>::New());
 }
 
 //----------------------------------------------------------------------------

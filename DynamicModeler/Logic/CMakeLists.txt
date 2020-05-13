@@ -5,9 +5,16 @@ set(KIT ${PROJECT_NAME})
 set(${KIT}_EXPORT_DIRECTIVE "VTK_SLICER_${MODULE_NAME_UPPER}_MODULE_LOGIC_EXPORT")
 
 set(${KIT}_INCLUDE_DIRECTORIES
+  ${vtkAddon_INCLUDE_DIRS}
   )
 
 set(${KIT}_SRCS
+  vtkSlicer${MODULE_NAME}AppendRule.cxx
+  vtkSlicer${MODULE_NAME}AppendRule.h
+  vtkSlicer${MODULE_NAME}BoundaryCutRule.cxx
+  vtkSlicer${MODULE_NAME}BoundaryCutRule.h
+  vtkSlicer${MODULE_NAME}CurveCutRule.cxx
+  vtkSlicer${MODULE_NAME}CurveCutRule.h
   vtkSlicer${MODULE_NAME}Logic.cxx
   vtkSlicer${MODULE_NAME}Logic.h
   vtkSlicer${MODULE_NAME}MirrorRule.cxx
@@ -18,10 +25,13 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}Rule.h
   vtkSlicer${MODULE_NAME}RuleFactory.cxx
   vtkSlicer${MODULE_NAME}RuleFactory.h
+  vtkSlicerFreeSurferExtrudeRule.cxx
+  vtkSlicerFreeSurferExtrudeRule.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
   vtkSlicer${MODULE_NAME}ModuleMRML
+  vtkAddon
   )
 
 #-----------------------------------------------------------------------------

@@ -45,10 +45,14 @@
 #include <vtkStringArray.h>
 
 // DynamicModeler Logic includes
+#include <vtkSlicerDynamicModelerBoundaryCutRule.h>
+#include <vtkSlicerDynamicModelerCurveCutRule.h>
 #include <vtkSlicerDynamicModelerLogic.h>
 #include <vtkSlicerDynamicModelerMirrorRule.h>
 #include <vtkSlicerDynamicModelerPlaneCutRule.h>
 #include <vtkSlicerDynamicModelerRuleFactory.h>
+
+#include <vtkSlicerFreeSurferExtrudeRule.h>
 
 // DynamicModeler MRML includes
 #include <vtkMRMLDynamicModelerNode.h>
@@ -106,6 +110,15 @@ void qSlicerDynamicModelerModuleWidget::setup()
 
   vtkNew<vtkSlicerDynamicModelerMirrorRule> mirrorRule;
   this->addRuleButton(QIcon(":/Icons/Mirror.png"), mirrorRule);
+
+  vtkNew<vtkSlicerDynamicModelerCurveCutRule> curveCutRule;
+  this->addRuleButton(QIcon(":/Icons/CurveCut.png"), curveCutRule);
+
+  vtkNew<vtkSlicerDynamicModelerBoundaryCutRule> boundaryCutRule;
+  this->addRuleButton(QIcon(":/Icons/BoundaryCut.png"), boundaryCutRule);
+
+  vtkNew<vtkSlicerFreeSurferExtrudeRule> fsExtrude;
+  this->addRuleButton(QIcon(":/Icons/vtkSlicerFreeSurferExtrudeRule.png"), fsExtrude);
 
   connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
     this, SLOT(onParameterNodeChanged()));
