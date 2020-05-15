@@ -27,6 +27,9 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}RuleFactory.h
   vtkSlicerFreeSurferExtrudeRule.cxx
   vtkSlicerFreeSurferExtrudeRule.h
+  
+  vtkImplicitPolyDataCellDistance.cxx
+  vtkImplicitPolyDataCellDistance.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
