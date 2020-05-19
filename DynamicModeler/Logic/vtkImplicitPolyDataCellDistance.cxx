@@ -48,7 +48,7 @@ vtkImplicitPolyDataCellDistance::vtkImplicitPolyDataCellDistance()
 void vtkImplicitPolyDataCellDistance::SetInput(vtkPolyData* input)
 {
   if ( this->Input != input )
-  {
+    {
     //vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
     //inputPolyData->DeepCopy(input);
     this->Input = input;
@@ -64,20 +64,20 @@ void vtkImplicitPolyDataCellDistance::SetInput(vtkPolyData* input)
     this->Locator->SetNumberOfPointsPerBucket(10);
     this->Locator->AutomaticOn();
     this->Locator->BuildLocator();
-  }
+    }
 }
 
 //-----------------------------------------------------------------------------
 vtkMTimeType vtkImplicitPolyDataCellDistance::GetMTime()
 {
   vtkMTimeType mTime=this->vtkImplicitFunction::GetMTime();
-  vtkMTimeType InputMTime;
+  vtkMTimeType inputMTime;
 
   if ( this->Input != nullptr )
-  {
-    InputMTime = this->Input->GetMTime();
-    mTime = (InputMTime > mTime ? InputMTime : mTime);
-  }
+    {
+    inputMTime = this->Input->GetMTime();
+    mTime = (inputMTime > mTime ? inputMTime : mTime);
+    }
 
   return mTime;
 }
@@ -86,10 +86,10 @@ vtkMTimeType vtkImplicitPolyDataCellDistance::GetMTime()
 vtkImplicitPolyDataCellDistance::~vtkImplicitPolyDataCellDistance()
 {
   if ( this->Locator )
-  {
+    {
     this->Locator->UnRegister(this);
     this->Locator = nullptr;
-  }
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -104,12 +104,10 @@ void vtkImplicitPolyDataCellDistance::CreateDefaultLocator()
 //-----------------------------------------------------------------------------
 double vtkImplicitPolyDataCellDistance::EvaluateFunction(double x[3])
 {
-  double distance2 = VTK_DOUBLE_MAX;
-  vtkIdType id = this->Locator->FindClosestPointWithinRadius(1.0, x, distance2);
-  return distance2;
-  //double closestPoint[3] = { 0.0 };
-  //this->Locator->GetDataSet()->GetPoint(id, closestPoint);
-  //return vtkMath::Distance2BetweenPoints(x, closestPoint);
+  vtkIdType id = this->Locator->FindClosestPoint(x);
+  double closestPoint[3] = { 0.0 };
+  this->Locator->GetDataSet()->GetPoint(id, closestPoint);
+  return vtkMath::Distance2BetweenPoints(x, closestPoint);
 }
 
 //-----------------------------------------------------------------------------

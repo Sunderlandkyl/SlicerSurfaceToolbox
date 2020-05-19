@@ -20,73 +20,68 @@
 
 #include "vtkSlicerDynamicModelerBoundaryCutRule.h"
 
-#include "vtkMRMLDynamicModelerNode.h"
+
 
 // MRML includes
-#include <vtkMRMLMarkupsPlaneNode.h>
 #include <vtkMRMLMarkupsClosedCurveNode.h>
+#include <vtkMRMLMarkupsFiducialNode.h>
+#include <vtkMRMLMarkupsPlaneNode.h>
 #include <vtkMRMLModelNode.h>
-#include <vtkMRMLSliceNode.h>
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
 #include <vtkAppendPolyData.h>
 #include <vtkCleanPolyData.h>
-#include <vtkClipClosedSurface.h>
 #include <vtkClipPolyData.h>
-#include <vtkCollection.h>
 #include <vtkCommand.h>
 #include <vtkConnectivityFilter.h>
-#include <vtkContourLoopExtraction.h>
-#include <vtkCutter.h>
-#include <vtkDataSetAttributes.h>
 #include <vtkExtractPolyDataGeometry.h>
 #include <vtkFeatureEdges.h>
 #include <vtkGeneralTransform.h>
-#include <vtkImplicitBoolean.h>
 #include <vtkIntArray.h>
-#include <vtkObjectFactory.h>
 #include <vtkPlane.h>
-#include <vtkPlaneCollection.h>
-#include <vtkReverseSense.h>
-#include <vtkSelectPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
 #include <vtkStripper.h>
-#include <vtkThreshold.h>
-#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 
-#include <vtkImplicitDataSet.h>
-#include <vtkImplicitPolyDataCellDistance.h>
-#include <vtkImplicitModeller.h>
-#include <vtkLoopBooleanPolyDataFilter.h>
+// DynamicModelerLogic includes
+#include "vtkImplicitPolyDataCellDistance.h"
+
+// DynamicModelerMRML includes
+#include "vtkMRMLDynamicModelerNode.h"
 
 //----------------------------------------------------------------------------
 vtkRuleNewMacro(vtkSlicerDynamicModelerBoundaryCutRule);
+
+const char* INPUT_BORDER_REFERENCE_ROLE = "BoundaryCut.InputBorder";
+const char* INPUT_MODEL_REFERENCE_ROLE = "BoundaryCut.InputModel";
+const char* INPUT_SEED_REFERENCE_ROLE = "BoundaryCut.InputSeed";
+const char* OUTPUT_MODEL_REFERENCE_ROLE = "BoundaryCut.OutputModel";
 
 //----------------------------------------------------------------------------
 vtkSlicerDynamicModelerBoundaryCutRule::vtkSlicerDynamicModelerBoundaryCutRule()
 {
   /////////
   // Inputs
-  vtkNew<vtkIntArray> inputCurveEvents;
-  inputCurveEvents->InsertNextTuple1(vtkCommand::ModifiedEvent);
-  inputCurveEvents->InsertNextTuple1(vtkMRMLMarkupsNode::PointModifiedEvent);
-  inputCurveEvents->InsertNextTuple1(vtkMRMLTransformableNode::TransformModifiedEvent);
-  vtkNew<vtkStringArray> inputCurveClassNames;
-  inputCurveClassNames->InsertNextValue("vtkMRMLMarkupsCurveNode");
-  inputCurveClassNames->InsertNextValue("vtkMRMLMarkupsPlaneNode");
-  NodeInfo inputCurve(
-    "Curve node",
-    "Curve node to cut the model node.",
-    inputCurveClassNames,
-    "BoundaryCut.InputCurve",
+  vtkNew<vtkIntArray> inputMarkupEvents;
+  inputMarkupEvents->InsertNextTuple1(vtkCommand::ModifiedEvent);
+  inputMarkupEvents->InsertNextTuple1(vtkMRMLMarkupsNode::PointModifiedEvent);
+  inputMarkupEvents->InsertNextTuple1(vtkMRMLTransformableNode::TransformModifiedEvent);
+
+  vtkNew<vtkStringArray> inputBorderClassNames;
+  inputBorderClassNames->InsertNextValue("vtkMRMLMarkupsCurveNode");
+  inputBorderClassNames->InsertNextValue("vtkMRMLMarkupsPlaneNode");
+  NodeInfo inputBorder(
+    "Border node",
+    "Markup node that creates part of the border for the region that will be extracted.",
+    inputBorderClassNames,
+    INPUT_BORDER_REFERENCE_ROLE,
     true,
     true,
-    inputCurveEvents
+    inputMarkupEvents
     );
-  this->InputNodeInfo.push_back(inputCurve);
+  this->InputNodeInfo.push_back(inputBorder);
 
   vtkNew<vtkIntArray> inputModelEvents;
   inputModelEvents->InsertNextTuple1(vtkCommand::ModifiedEvent);
@@ -98,12 +93,25 @@ vtkSlicerDynamicModelerBoundaryCutRule::vtkSlicerDynamicModelerBoundaryCutRule()
     "Model node",
     "Model node to be cut with the curve.",
     inputModelClassNames,
-    "BoundaryCut.InputModel",
+    INPUT_MODEL_REFERENCE_ROLE,
     true,
     false,
     inputModelEvents
     );
   this->InputNodeInfo.push_back(inputModel);
+
+  vtkNew<vtkStringArray> inputSeedFiducialClassNames;
+  inputSeedFiducialClassNames->InsertNextValue("vtkMRMLMarkupsFiducialNode");
+  NodeInfo inputSeed(
+    "Seed fiducial node",
+    "Markup fiducial node that designates the region from the surface that should be preserved.",
+    inputSeedFiducialClassNames,
+    INPUT_SEED_REFERENCE_ROLE,
+    false,
+    false,
+    inputMarkupEvents
+  );
+  this->InputNodeInfo.push_back(inputSeed);
 
   /////////
   // Outputs
@@ -111,11 +119,13 @@ vtkSlicerDynamicModelerBoundaryCutRule::vtkSlicerDynamicModelerBoundaryCutRule()
     "Model node",
     "Output model containing the cut region.",
     inputModelClassNames,
-    "BoundaryCut.OutputModel",
+    OUTPUT_MODEL_REFERENCE_ROLE,
     false,
     false
     );
   this->OutputNodeInfo.push_back(outputModel);
+
+  this->TransformPolyDataFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
 }
 
 //----------------------------------------------------------------------------
@@ -145,25 +155,25 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
     }
 
   vtkMRMLModelNode* inputModelNode = vtkMRMLModelNode::SafeDownCast(this->GetNthInputNode(1, surfaceEditorNode));
-  if (!inputModelNode || !inputModelNode->GetPolyData())
+  if (!inputModelNode)
     {
-    vtkErrorMacro("Invalid input model node!");
-    return false;
-    }
-
-  vtkPolyData* inputPolyData = inputModelNode->GetPolyData();
-  if (!inputPolyData)
-    {
+    // Nothing to output
     return true;
     }
 
-  double center_World[3] = { 0.0 };
+  vtkPolyData* inputPolyData = inputModelNode->GetPolyData();
+  if (!inputPolyData || inputPolyData->GetNumberOfPoints() < 1)
+    {
+    // Nothing to output
+    return true;
+    }
+
+
   vtkNew<vtkAppendPolyData> appendFilter;
-  std::string nthInputReferenceRole = this->GetNthInputNodeReferenceRole(0);
-  int numberOfInputNodes = surfaceEditorNode->GetNumberOfNodeReferences(nthInputReferenceRole.c_str());
+  int numberOfInputNodes = surfaceEditorNode->GetNumberOfNodeReferences(INPUT_BORDER_REFERENCE_ROLE);
   for (int i = 0; i < numberOfInputNodes; ++i)
     {
-    vtkMRMLNode* inputNode = surfaceEditorNode->GetNthNodeReference(nthInputReferenceRole.c_str(), i);
+    vtkMRMLNode* inputNode = surfaceEditorNode->GetNthNodeReference(INPUT_BORDER_REFERENCE_ROLE, i);
     double currentCenter_World[3] = { 0.0 };
 
     vtkNew<vtkPolyData> outputLinePolyData;
@@ -179,10 +189,6 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
       vtkNew<vtkPlane> plane;
       plane->SetNormal(normal_World);
       plane->SetOrigin(origin_World);
-
-      //vtkNew<vtkClipPolyData> clipper;
-      //clipper->SetInputData(inputPolyData);
-      //clipper->SetClipFunction(plane);
 
       vtkNew<vtkExtractPolyDataGeometry> planeExtractor;
       planeExtractor->SetInputData(inputPolyData);
@@ -204,27 +210,88 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
 
       outputLinePolyData->SetPoints(boundaryStrips->GetOutput()->GetPoints());
       outputLinePolyData->SetLines(boundaryStrips->GetOutput()->GetLines());
-
-      planeNode->GetOriginWorld(currentCenter_World);
       }
 
     vtkMRMLMarkupsCurveNode* curveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(inputNode);
     if (curveNode)
       {
-      vtkPoints* curvePoints = curveNode->GetCurvePointsWorld();   
+      vtkPoints* curvePoints = curveNode->GetCurvePointsWorld();
 
       vtkNew<vtkIdList> line;
       for (int i = 0; i < curvePoints->GetNumberOfPoints(); ++i)
         {
         line->InsertNextId(i);
         }
-
       vtkNew<vtkCellArray> lines;
       lines->InsertNextCell(line);
 
       outputLinePolyData->SetPoints(curvePoints);
       outputLinePolyData->SetLines(lines);
+      }
+    appendFilter->AddInputData(outputLinePolyData);
+    }
+  vtkNew<vtkCleanPolyData> cleanFilter;
+  cleanFilter->SetInputConnection(appendFilter->GetOutputPort());
+  cleanFilter->Update();
 
+  vtkNew<vtkImplicitPolyDataCellDistance> distance;
+  distance->SetInput(cleanFilter->GetOutput());
+
+  double epsilon = 1e-5;
+
+  double closestPointRegion_World[3] = { 0.0 };
+  this->GetPositionForClosestPointRegion(surfaceEditorNode, closestPointRegion_World);
+
+  vtkNew<vtkClipPolyData> clipPolyData;
+  clipPolyData->SetInputData(inputPolyData);
+  clipPolyData->SetClipFunction(distance);
+  clipPolyData->SetValue(epsilon);
+  clipPolyData->InsideOutOn();
+  clipPolyData->GenerateClippedOutputOn();
+  clipPolyData->Update();
+
+  vtkNew<vtkConnectivityFilter> connectivity;
+  connectivity->SetInputData(clipPolyData->GetClippedOutput());
+  connectivity->SetExtractionModeToClosestPointRegion();
+  connectivity->SetClosestPoint(closestPointRegion_World);
+  connectivity->Update();
+
+  vtkNew<vtkPolyData> outputPolyData;
+  outputPolyData->DeepCopy(connectivity->GetOutput());
+  outputModelNode->SetAndObserveMesh(outputPolyData);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+void vtkSlicerDynamicModelerBoundaryCutRule::GetPositionForClosestPointRegion(vtkMRMLDynamicModelerNode* surfaceEditorNode, double closestPointRegion_World[3])
+{
+  if (surfaceEditorNode->GetNumberOfNodeReferences(INPUT_SEED_REFERENCE_ROLE) > 0)
+    {
+    vtkMRMLMarkupsFiducialNode* seedNode = vtkMRMLMarkupsFiducialNode::SafeDownCast(
+      surfaceEditorNode->GetNthNodeReference(INPUT_SEED_REFERENCE_ROLE, 0));
+    if (seedNode && seedNode->GetNumberOfControlPoints() > 0)
+      {
+      seedNode->GetNthControlPointPositionWorld(0, closestPointRegion_World);
+      return;
+      }
+    }
+
+  int numberOfInputNodes = surfaceEditorNode->GetNumberOfNodeReferences(INPUT_BORDER_REFERENCE_ROLE);
+  for (int i = 0; i < numberOfInputNodes; ++i)
+    {
+    vtkMRMLNode* inputNode = surfaceEditorNode->GetNthNodeReference(INPUT_BORDER_REFERENCE_ROLE, i);
+    double currentCenter_World[3] = { 0.0 };
+
+    vtkNew<vtkPolyData> outputLinePolyData;
+    vtkMRMLMarkupsPlaneNode* planeNode = vtkMRMLMarkupsPlaneNode::SafeDownCast(inputNode);
+    if (planeNode)
+      {
+      planeNode->GetOriginWorld(currentCenter_World);
+      }
+    vtkMRMLMarkupsCurveNode* curveNode = vtkMRMLMarkupsCurveNode::SafeDownCast(inputNode);
+    if (curveNode)
+      {
       double inv_N = 1. / curveNode->GetNumberOfControlPoints();
       for (int i = 0; i < curveNode->GetNumberOfControlPoints(); ++i)
         {
@@ -235,62 +302,7 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
         currentCenter_World[2] += p[2] * inv_N;
         }
       }
-
     vtkMath::MultiplyScalar(currentCenter_World, 1.0 / numberOfInputNodes);
-    vtkMath::Add(currentCenter_World, center_World, center_World);
-
-    appendFilter->AddInputData(outputLinePolyData);
+    vtkMath::Add(currentCenter_World, closestPointRegion_World, closestPointRegion_World);
     }
-
-  vtkNew<vtkCleanPolyData> cleanFilter;
-  cleanFilter->SetInputConnection(appendFilter->GetOutputPort());
-  cleanFilter->Update();
-
-  vtkNew<vtkImplicitDataSet> distance;
-  distance->SetDataSet(inputPolyData);
-  //vtkNew<vtkImplicitPolyDataCellDistance> distance;
-  //vtkNew<vtkImplicitModeller> distance;
-  //distance->SetInputData(cleanFilter->GetOutput());
-  //distance->SetInput(cleanFilter->GetOutput());
-  //vtkImplicitModeller 
-  vtkNew<vtkClipPolyData> clipPolyData;
-  clipPolyData->SetClipFunction(distance);
-  double epsilon = 1e-5;
-  clipPolyData->SetValue(epsilon);
-  clipPolyData->InsideOutOn();
-  clipPolyData->GenerateClipScalarsOn();
-  clipPolyData->GenerateClippedOutputOn();
-  clipPolyData->SetInputData(inputPolyData);
-  clipPolyData->Update();
-
-  //vtkNew<vtkLoopBooleanPolyDataFilter> loop;
-  //loop->SetInputData(0, inputPolyData);
-  //loop->SetInputData(1, cleanFilter->GetOutput());
-  //loop->Update();
-
-  //vtkNew<vtkContourLoopExtraction> contourLoopExtraction;
-  //contourLoopExtraction->SetInputConnection(cleanFilter->GetOutputPort());
-  //contourLoopExtraction->SetOutputModeToPolylines();
-  //contourLoopExtraction->Update();
-
-  vtkNew<vtkConnectivityFilter> connectivity;
-  connectivity->SetInputData(clipPolyData->GetClippedOutput());
-  connectivity->SetExtractionModeToClosestPointRegion();
-  connectivity->SetClosestPoint(center_World);
-  connectivity->Update();
-
-  vtkNew<vtkPolyData> outputPolyData;
-  //outputPolyData->SetPoints(cleanFilter->GetOutput()->GetPoints());
-  //outputPolyData->SetLines(cleanFilter->GetOutput()->GetLines());
-  outputPolyData->DeepCopy(connectivity->GetOutput());
-  //if (outputModelNode->GetPolyData())
-  //  {
-  //  outputModelNode->GetPolyData()->DeepCopy(outputPolyData);
-  //  }
-  //else
-  //  {
-    outputModelNode->SetAndObserveMesh(outputPolyData);
-    //}
-
-  return true;
 }

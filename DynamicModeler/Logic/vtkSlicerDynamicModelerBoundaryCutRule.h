@@ -71,11 +71,10 @@ protected:
   ~vtkSlicerDynamicModelerBoundaryCutRule() override;
   void operator=(const vtkSlicerDynamicModelerBoundaryCutRule&);
 
+  void GetPositionForClosestPointRegion(vtkMRMLDynamicModelerNode* surfaceEditorNode, double closestPointRegion_World[3]);
+
 protected:
-  //vtkSmartPointer<vtkSelectPolyData>          SelectionFilter;
-  //vtkSmartPointer<vtkClipPolyData>            ClipFilter;
-  //vtkSmartPointer<vtkConnectivityFilter>      ConnectivityFilter;
-  //vtkSmartPointer<vtkCleanPolyData>           CleanFilter;
+  vtkSmartPointer<vtkTransformPolyDataFilter>   TransformPolyDataFilter;
 };
 
 #endif // __vtkSlicerDynamicModelerBoundaryCutRule_h

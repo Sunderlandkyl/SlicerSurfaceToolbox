@@ -45,6 +45,7 @@
 #include <vtkStringArray.h>
 
 // DynamicModeler Logic includes
+#include <vtkSlicerDynamicModelerAppendRule.h>
 #include <vtkSlicerDynamicModelerBoundaryCutRule.h>
 #include <vtkSlicerDynamicModelerCurveCutRule.h>
 #include <vtkSlicerDynamicModelerLogic.h>
@@ -117,8 +118,8 @@ void qSlicerDynamicModelerModuleWidget::setup()
   vtkNew<vtkSlicerDynamicModelerBoundaryCutRule> boundaryCutRule;
   this->addRuleButton(QIcon(":/Icons/BoundaryCut.png"), boundaryCutRule);
 
-  vtkNew<vtkSlicerFreeSurferExtrudeRule> fsExtrude;
-  this->addRuleButton(QIcon(":/Icons/vtkSlicerFreeSurferExtrudeRule.png"), fsExtrude);
+  vtkNew<vtkSlicerDynamicModelerAppendRule> appendRule;
+  this->addRuleButton(QIcon(":/Icons/Append.png"), appendRule);
 
   connect(d->SubjectHierarchyTreeView, SIGNAL(currentItemChanged(vtkIdType)),
     this, SLOT(onParameterNodeChanged()));
