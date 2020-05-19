@@ -53,8 +53,6 @@
 #include <vtkSlicerDynamicModelerPlaneCutRule.h>
 #include <vtkSlicerDynamicModelerRuleFactory.h>
 
-#include <vtkSlicerFreeSurferExtrudeRule.h>
-
 // DynamicModeler MRML includes
 #include <vtkMRMLDynamicModelerNode.h>
 

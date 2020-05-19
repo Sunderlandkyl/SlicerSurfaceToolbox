@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkImplicitPolyDataCellDistance.h
+  Module:    vtkImplicitPolyDataPointDistance.h
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -13,7 +13,7 @@
 
 =========================================================================*/
 /**
- * @class   vtkImplicitPolyDataCellDistance
+ * @class   vtkImplicitPolyDataPointDistance
  *
  *
  * Implicit function that computes the distance from a point x to the
@@ -36,8 +36,8 @@
  * http://www.midasjournal.org/browse/publication/797
 */
 
-#ifndef vtkImplicitPolyDataCellDistance_h
-#define vtkImplicitPolyDataCellDistance_h
+#ifndef vtkImplicitPolyDataPointDistance_h
+#define vtkImplicitPolyDataPointDistance_h
 
 #include "vtkSlicerDynamicModelerModuleLogicExport.h"
 
@@ -46,11 +46,11 @@
 class vtkPointLocator;
 class vtkPolyData;
 
-class VTK_SLICER_DYNAMICMODELER_MODULE_LOGIC_EXPORT vtkImplicitPolyDataCellDistance : public vtkImplicitFunction
+class VTK_SLICER_DYNAMICMODELER_MODULE_LOGIC_EXPORT vtkImplicitPolyDataPointDistance : public vtkImplicitFunction
 {
 public:
-  static vtkImplicitPolyDataCellDistance *New();
-  vtkTypeMacro(vtkImplicitPolyDataCellDistance,vtkImplicitFunction);
+  static vtkImplicitPolyDataPointDistance *New();
+  vtkTypeMacro(vtkImplicitPolyDataPointDistance,vtkImplicitFunction);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
   /**
@@ -116,8 +116,8 @@ public:
   //@}
 
 protected:
-  vtkImplicitPolyDataCellDistance();
-  ~vtkImplicitPolyDataCellDistance() override;
+  vtkImplicitPolyDataPointDistance();
+  ~vtkImplicitPolyDataPointDistance() override;
 
   /**
    * Create default locator. Used to create one when none is specified.
@@ -133,8 +133,8 @@ protected:
   vtkPointLocator *Locator;
 
 private:
-  vtkImplicitPolyDataCellDistance(const vtkImplicitPolyDataCellDistance&) = delete;
-  void operator=(const vtkImplicitPolyDataCellDistance&) = delete;
+  vtkImplicitPolyDataPointDistance(const vtkImplicitPolyDataPointDistance&) = delete;
+  void operator=(const vtkImplicitPolyDataPointDistance&) = delete;
 };
 
 #endif

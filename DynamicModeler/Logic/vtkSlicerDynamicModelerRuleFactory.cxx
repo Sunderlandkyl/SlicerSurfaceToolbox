@@ -27,8 +27,6 @@ limitations under the License.
 #include "vtkSlicerDynamicModelerRuleFactory.h"
 #include "vtkSlicerDynamicModelerRule.h"
 
-#include "vtkSlicerFreeSurferExtrudeRule.h"
-
 // VTK includes
 #include <vtkObjectFactory.h>
 #include <vtkDataObject.h>
@@ -125,8 +123,6 @@ void vtkSlicerDynamicModelerRuleFactory::classInitialize()
   vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerCurveCutRule>::New());
   vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerBoundaryCutRule>::New());
   vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerDynamicModelerAppendRule>::New());
-
-  vtkSlicerDynamicModelerRuleFactoryInstance->RegisterDynamicModelerRule(vtkSmartPointer<vtkSlicerFreeSurferExtrudeRule>::New());
 }
 
 //----------------------------------------------------------------------------

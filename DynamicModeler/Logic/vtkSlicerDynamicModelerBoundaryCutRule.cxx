@@ -20,8 +20,6 @@
 
 #include "vtkSlicerDynamicModelerBoundaryCutRule.h"
 
-
-
 // MRML includes
 #include <vtkMRMLMarkupsClosedCurveNode.h>
 #include <vtkMRMLMarkupsFiducialNode.h>
@@ -46,7 +44,7 @@
 #include <vtkTransformPolyDataFilter.h>
 
 // DynamicModelerLogic includes
-#include "vtkImplicitPolyDataCellDistance.h"
+#include "vtkImplicitPolyDataPointDistance.h"
 
 // DynamicModelerMRML includes
 #include "vtkMRMLDynamicModelerNode.h"
@@ -234,7 +232,7 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
   cleanFilter->SetInputConnection(appendFilter->GetOutputPort());
   cleanFilter->Update();
 
-  vtkNew<vtkImplicitPolyDataCellDistance> distance;
+  vtkNew<vtkImplicitPolyDataPointDistance> distance;
   distance->SetInput(cleanFilter->GetOutput());
 
   double epsilon = 1e-5;

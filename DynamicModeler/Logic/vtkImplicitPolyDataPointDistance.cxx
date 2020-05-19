@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Visualization Toolkit
-  Module:    vtkImplicitPolyDataCellDistance.cxx
+  Module:    vtkImplicitPolyDataPointDistance.cxx
 
   Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
   All rights reserved.
@@ -12,7 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkImplicitPolyDataCellDistance.h"
+#include "vtkImplicitPolyDataPointDistance.h"
 
 #include "vtkCellData.h"
 #include "vtkGenericCell.h"
@@ -24,10 +24,10 @@
 #include "vtkTriangleFilter.h"
 #include "vtkSmartPointer.h"
 
-vtkStandardNewMacro(vtkImplicitPolyDataCellDistance);
+vtkStandardNewMacro(vtkImplicitPolyDataPointDistance);
 
 //-----------------------------------------------------------------------------
-vtkImplicitPolyDataCellDistance::vtkImplicitPolyDataCellDistance()
+vtkImplicitPolyDataPointDistance::vtkImplicitPolyDataPointDistance()
 {
   this->NoClosestPoint[0] = 0.0;
   this->NoClosestPoint[1] = 0.0;
@@ -45,7 +45,7 @@ vtkImplicitPolyDataCellDistance::vtkImplicitPolyDataCellDistance()
 }
 
 //-----------------------------------------------------------------------------
-void vtkImplicitPolyDataCellDistance::SetInput(vtkPolyData* input)
+void vtkImplicitPolyDataPointDistance::SetInput(vtkPolyData* input)
 {
   if ( this->Input != input )
     {
@@ -68,7 +68,7 @@ void vtkImplicitPolyDataCellDistance::SetInput(vtkPolyData* input)
 }
 
 //-----------------------------------------------------------------------------
-vtkMTimeType vtkImplicitPolyDataCellDistance::GetMTime()
+vtkMTimeType vtkImplicitPolyDataPointDistance::GetMTime()
 {
   vtkMTimeType mTime=this->vtkImplicitFunction::GetMTime();
   vtkMTimeType inputMTime;
@@ -83,7 +83,7 @@ vtkMTimeType vtkImplicitPolyDataCellDistance::GetMTime()
 }
 
 //-----------------------------------------------------------------------------
-vtkImplicitPolyDataCellDistance::~vtkImplicitPolyDataCellDistance()
+vtkImplicitPolyDataPointDistance::~vtkImplicitPolyDataPointDistance()
 {
   if ( this->Locator )
     {
@@ -93,7 +93,7 @@ vtkImplicitPolyDataCellDistance::~vtkImplicitPolyDataCellDistance()
 }
 
 //----------------------------------------------------------------------------
-void vtkImplicitPolyDataCellDistance::CreateDefaultLocator()
+void vtkImplicitPolyDataPointDistance::CreateDefaultLocator()
 {
   if ( this->Locator == nullptr)
   {
@@ -102,7 +102,7 @@ void vtkImplicitPolyDataCellDistance::CreateDefaultLocator()
 }
 
 //-----------------------------------------------------------------------------
-double vtkImplicitPolyDataCellDistance::EvaluateFunction(double x[3])
+double vtkImplicitPolyDataPointDistance::EvaluateFunction(double x[3])
 {
   vtkIdType id = this->Locator->FindClosestPoint(x);
   double closestPoint[3] = { 0.0 };
@@ -111,7 +111,7 @@ double vtkImplicitPolyDataCellDistance::EvaluateFunction(double x[3])
 }
 
 //-----------------------------------------------------------------------------
-void vtkImplicitPolyDataCellDistance::EvaluateGradient(double x[3], double g[3])
+void vtkImplicitPolyDataPointDistance::EvaluateGradient(double x[3], double g[3])
 {
   // TODO
   vtkErrorMacro("EvaluateGradient not implemented!");
@@ -119,7 +119,7 @@ void vtkImplicitPolyDataCellDistance::EvaluateGradient(double x[3], double g[3])
 
 
 //-----------------------------------------------------------------------------
-void vtkImplicitPolyDataCellDistance::PrintSelf(ostream& os, vtkIndent indent)
+void vtkImplicitPolyDataPointDistance::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkImplicitFunction::PrintSelf(os,indent);
 

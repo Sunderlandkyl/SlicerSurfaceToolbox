@@ -9,6 +9,8 @@ set(${KIT}_INCLUDE_DIRECTORIES
   )
 
 set(${KIT}_SRCS
+  vtkImplicitPolyDataPointDistance.cxx
+  vtkImplicitPolyDataPointDistance.h
   vtkSlicer${MODULE_NAME}AppendRule.cxx
   vtkSlicer${MODULE_NAME}AppendRule.h
   vtkSlicer${MODULE_NAME}BoundaryCutRule.cxx
@@ -25,11 +27,6 @@ set(${KIT}_SRCS
   vtkSlicer${MODULE_NAME}Rule.h
   vtkSlicer${MODULE_NAME}RuleFactory.cxx
   vtkSlicer${MODULE_NAME}RuleFactory.h
-  vtkSlicerFreeSurferExtrudeRule.cxx
-  vtkSlicerFreeSurferExtrudeRule.h
-  
-  vtkImplicitPolyDataCellDistance.cxx
-  vtkImplicitPolyDataCellDistance.h
   )
 
 set(${KIT}_TARGET_LIBRARIES
