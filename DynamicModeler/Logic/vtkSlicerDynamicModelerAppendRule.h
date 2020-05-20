@@ -32,21 +32,11 @@
 #include <string>
 #include <vector>
 
+class vtkAppendPolyData;
 class vtkCleanPolyData;
-class vtkClipPolyData;
-class vtkConnectivityFilter;
-class vtkDataObject;
 class vtkGeneralTransform;
-class vtkGeometryFilter;
-class vtkImplicitBoolean;
-class vtkMRMLDynamicModelerNode;
-class vtkPlane;
 class vtkPolyData;
-class vtkReverseSense;
-class vtkThreshold;
-class vtkTransform;
 class vtkTransformPolyDataFilter;
-class vtkSelectPolyData;
 
 #include "vtkSlicerDynamicModelerRule.h"
 
@@ -76,10 +66,11 @@ protected:
   bool RemoveDuplicateCells(vtkPolyData* polyData);
 
 protected:
-  //vtkSmartPointer<vtkSelectPolyData>          SelectionFilter;
-  //vtkSmartPointer<vtkClipPolyData>            ClipFilter;
-  //vtkSmartPointer<vtkConnectivityFilter>      ConnectivityFilter;
-  //vtkSmartPointer<vtkCleanPolyData>           CleanFilter;
+  vtkSmartPointer<vtkAppendPolyData>          AppendFilter;
+  vtkSmartPointer<vtkCleanPolyData>           CleanFilter;
+
+  vtkSmartPointer<vtkGeneralTransform>        OutputWorldToModelTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> OutputWorldToModelTransformFilter;
 };
 
 #endif // __vtkSlicerDynamicModelerAppendRule_h

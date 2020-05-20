@@ -78,10 +78,10 @@ protected:
 
   vtkSmartPointer<vtkClipPolyData>            PlaneClipper;
 
-  vtkSmartPointer<vtkTransformPolyDataFilter> OutputPositiveModelToWorldTransformFilter;
+  vtkSmartPointer<vtkTransformPolyDataFilter> OutputPositiveWorldToModelTransformFilter;
   vtkSmartPointer<vtkGeneralTransform>        OutputPositiveWorldToModelTransform;
 
-  vtkSmartPointer<vtkTransformPolyDataFilter> OutputNegativeModelToWorldTransformFilter;
+  vtkSmartPointer<vtkTransformPolyDataFilter> OutputNegativeWorldToModelTransformFilter;
   vtkSmartPointer<vtkGeneralTransform>        OutputNegativeWorldToModelTransform;
 };
 

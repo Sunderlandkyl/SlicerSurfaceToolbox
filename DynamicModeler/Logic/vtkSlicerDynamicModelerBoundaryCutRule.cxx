@@ -123,7 +123,25 @@ vtkSlicerDynamicModelerBoundaryCutRule::vtkSlicerDynamicModelerBoundaryCutRule()
     );
   this->OutputNodeInfo.push_back(outputModel);
 
-  this->TransformPolyDataFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->InputModelToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  this->InputModelToWorldTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->InputModelToWorldTransformFilter->SetTransform(this->InputModelToWorldTransform);
+
+  double epsilon = 1e-5;
+  this->ClipPolyData = vtkSmartPointer<vtkClipPolyData>::New();
+  this->ClipPolyData->SetInputConnection(this->InputModelToWorldTransformFilter->GetOutputPort());
+  this->ClipPolyData->SetValue(epsilon);
+  this->ClipPolyData->InsideOutOn();
+  this->ClipPolyData->GenerateClippedOutputOn();
+
+  this->Connectivity = vtkSmartPointer<vtkConnectivityFilter>::New();
+  this->Connectivity->SetInputConnection(this->ClipPolyData->GetClippedOutputPort());
+  this->Connectivity->SetExtractionModeToClosestPointRegion();
+
+  this->OutputWorldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  this->OutputWorldToModelTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->OutputWorldToModelTransformFilter->SetInputConnection(this->Connectivity->GetOutputPort());
+  this->OutputWorldToModelTransformFilter->SetTransform(this->OutputWorldToModelTransform);
 }
 
 //----------------------------------------------------------------------------
@@ -166,6 +184,15 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
     return true;
     }
 
+  this->InputModelToWorldTransformFilter->SetInputData(inputPolyData);
+  if (inputModelNode->GetParentTransformNode())
+    {
+    inputModelNode->GetParentTransformNode()->GetTransformToWorld(this->InputModelToWorldTransform);
+    }
+  else
+    {
+    this->InputModelToWorldTransform->Identity();
+    }
 
   vtkNew<vtkAppendPolyData> appendFilter;
   int numberOfInputNodes = surfaceEditorNode->GetNumberOfNodeReferences(INPUT_BORDER_REFERENCE_ROLE);
@@ -189,7 +216,7 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
       plane->SetOrigin(origin_World);
 
       vtkNew<vtkExtractPolyDataGeometry> planeExtractor;
-      planeExtractor->SetInputData(inputPolyData);
+      planeExtractor->SetInputConnection(this->InputModelToWorldTransformFilter->GetOutputPort());
       planeExtractor->SetImplicitFunction(plane);
       planeExtractor->ExtractInsideOff();
       planeExtractor->ExtractBoundaryCellsOff();
@@ -200,7 +227,6 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
       boundaryEdges->FeatureEdgesOff();
       boundaryEdges->NonManifoldEdgesOff();
       boundaryEdges->ManifoldEdgesOff();
-
 
       vtkNew<vtkStripper> boundaryStrips;
       boundaryStrips->SetInputConnection(boundaryEdges->GetOutputPort());
@@ -235,28 +261,29 @@ bool vtkSlicerDynamicModelerBoundaryCutRule::RunInternal(vtkMRMLDynamicModelerNo
   vtkNew<vtkImplicitPolyDataPointDistance> distance;
   distance->SetInput(cleanFilter->GetOutput());
 
-  double epsilon = 1e-5;
-
   double closestPointRegion_World[3] = { 0.0 };
   this->GetPositionForClosestPointRegion(surfaceEditorNode, closestPointRegion_World);
 
-  vtkNew<vtkClipPolyData> clipPolyData;
-  clipPolyData->SetInputData(inputPolyData);
-  clipPolyData->SetClipFunction(distance);
-  clipPolyData->SetValue(epsilon);
-  clipPolyData->InsideOutOn();
-  clipPolyData->GenerateClippedOutputOn();
-  clipPolyData->Update();
+  this->ClipPolyData->SetClipFunction(distance);
 
-  vtkNew<vtkConnectivityFilter> connectivity;
-  connectivity->SetInputData(clipPolyData->GetClippedOutput());
-  connectivity->SetExtractionModeToClosestPointRegion();
-  connectivity->SetClosestPoint(closestPointRegion_World);
-  connectivity->Update();
+  this->Connectivity->SetClosestPoint(closestPointRegion_World);
+
+  if (outputModelNode && outputModelNode->GetParentTransformNode())
+    {
+    outputModelNode->GetParentTransformNode()->GetTransformFromWorld(this->OutputWorldToModelTransform);
+    }
+  else
+    {
+    this->OutputWorldToModelTransform->Identity();
+    }
+  this->OutputWorldToModelTransformFilter->Update();
 
   vtkNew<vtkPolyData> outputPolyData;
-  outputPolyData->DeepCopy(connectivity->GetOutput());
+  outputPolyData->DeepCopy(this->OutputWorldToModelTransformFilter->GetOutput());
+
+  MRMLNodeModifyBlocker blocker(outputModelNode);
   outputModelNode->SetAndObserveMesh(outputPolyData);
+  outputModelNode->InvokeCustomModifiedEvent(vtkMRMLModelNode::MeshModifiedEvent);
 
   return true;
 }

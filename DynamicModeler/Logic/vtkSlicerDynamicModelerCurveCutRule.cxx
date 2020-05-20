@@ -20,6 +20,7 @@
 
 #include "vtkSlicerDynamicModelerCurveCutRule.h"
 
+// DynamicModeler MRML includes
 #include "vtkMRMLDynamicModelerNode.h"
 
 // MRML includes
@@ -29,40 +30,19 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkAppendPolyData.h>
 #include <vtkCleanPolyData.h>
-#include <vtkClipClosedSurface.h>
 #include <vtkClipPolyData.h>
-#include <vtkCollection.h>
 #include <vtkCommand.h>
 #include <vtkConnectivityFilter.h>
-#include <vtkCutter.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkFeatureEdges.h>
 #include <vtkGeneralTransform.h>
-#include <vtkImplicitBoolean.h>
 #include <vtkIntArray.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlane.h>
-#include <vtkPlaneCollection.h>
-#include <vtkReverseSense.h>
 #include <vtkSelectPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
-#include <vtkStripper.h>
-#include <vtkThreshold.h>
-#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 
 // vtkAddon
 #include <vtkAddonMathUtilities.h>
-
-// TODO
-#include <vtkMRMLScene.h>
-#include <vtkMRMLMarkupsPlaneNode.h>
-#include <vtkDijkstraGraphGeodesicPath.h>
-#include <vtkPointLocator.h>
-#include <vtkCellLocator.h>
 
 //----------------------------------------------------------------------------
 vtkRuleNewMacro(vtkSlicerDynamicModelerCurveCutRule);
@@ -118,10 +98,9 @@ vtkSlicerDynamicModelerCurveCutRule::vtkSlicerDynamicModelerCurveCutRule()
     );
   this->OutputNodeInfo.push_back(outputModel);
 
-  this->ModelToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
-
-  this->ModelToWorldTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
-  this->ModelToWorldTransformFilter->SetTransform(this->ModelToWorldTransform);
+  this->InputModelToWorldTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  this->InputModelToWorldTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->InputModelToWorldTransformFilter->SetTransform(this->InputModelToWorldTransform);
 
   this->SelectionFilter = vtkSmartPointer<vtkSelectPolyData>::New();
   this->SelectionFilter->GenerateSelectionScalarsOn();
@@ -136,6 +115,11 @@ vtkSlicerDynamicModelerCurveCutRule::vtkSlicerDynamicModelerCurveCutRule()
 
   this->CleanFilter = vtkSmartPointer<vtkCleanPolyData>::New();
   this->CleanFilter->SetInputConnection(this->ConnectivityFilter->GetOutputPort());
+
+  this->OutputWorldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  this->OutputWorldToModelTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->OutputWorldToModelTransformFilter->SetInputConnection(this->CleanFilter->GetOutputPort());
+  this->OutputWorldToModelTransformFilter->SetTransform(this->OutputWorldToModelTransform);
 }
 
 //----------------------------------------------------------------------------
@@ -180,15 +164,6 @@ bool vtkSlicerDynamicModelerCurveCutRule::RunInternal(vtkMRMLDynamicModelerNode*
     return false;
     }
 
-  vtkMRMLMarkupsPlaneNode* plane = vtkMRMLMarkupsPlaneNode::SafeDownCast(curveNode->GetScene()->GetFirstNodeByName("PlanePreview"));
-  if (!plane)
-  {
-    plane = vtkMRMLMarkupsPlaneNode::SafeDownCast(curveNode->GetScene()->AddNewNodeByClass("vtkMRMLMarkupsPlaneNode", "PlanePreview"));
-    plane->SetSizeMode(vtkMRMLMarkupsPlaneNode::SizeModeAbsolute);
-    plane->SetPlaneBounds(-25, 25, -12.5, 12.5, 0.0, 0.0);
-  }
-  MRMLNodeModifyBlocker b(plane);
-
   double roughCenterOfMass[3] = { 0.0 };
   double bounds_World[6] = {0.0};
   inputModelNode->GetRASBounds(bounds_World);
@@ -196,112 +171,33 @@ bool vtkSlicerDynamicModelerCurveCutRule::RunInternal(vtkMRMLDynamicModelerNode*
     {
     roughCenterOfMass[i] = (bounds_World[2 * i] + bounds_World[2 * i + 1]) / 2.0;
     }
-
-  vtkSmartPointer<vtkPoints> curvePointsWorld = curveNode->GetCurvePointsWorld();
-  if (!closedCurveNode && curvePointsWorld && curvePointsWorld->GetNumberOfPoints() > 1)
-    {
-    vtkNew<vtkMatrix4x4> planeMatrix;
-    vtkAddonMathUtilities::FitPlaneToPoints(curvePointsWorld, planeMatrix);
-
-    vtkNew<vtkTransform> planeTransform;
-    planeTransform->SetMatrix(planeMatrix);
-    double planeNormal[3] = { 0.0, 0.0, 1000.0 };
-    planeTransform->TransformVector(planeNormal, planeNormal);
-
-    double origin[3] = { 0.0 };
-    planeTransform->TransformPoint(origin, origin);
-
-    double vector[3] = { 0.0 };
-    vtkMath::Subtract(roughCenterOfMass, origin, vector);
-    if (vtkMath::Dot(planeNormal, vector) > 0.0)
-      {
-      vtkMath::MultiplyScalar(planeNormal, -1.0);
-      }
-    plane->SetNormalWorld(planeNormal);
-    plane->SetOriginWorld(origin);
-
-    vtkSmartPointer<vtkPoints> tempPointsWorld = vtkSmartPointer<vtkPoints>::New();
-
-    //double firstPoint[3] = { 0.0 };
-    //curvePointsWorld->GetPoint(0, firstPoint);
-    //vtkMath::Add(firstPoint, planeNormal, firstPoint);
-    //tempPointsWorld->InsertNextPoint(firstPoint);
-
-    for (int i = 0; i < curvePointsWorld->GetNumberOfPoints(); ++i)
-      {
-      tempPointsWorld->InsertNextPoint(curvePointsWorld->GetPoint(i));
-      }
-
-    //vtkCellLocator
-    vtkNew<vtkPointLocator> locator;
-    locator->SetDataSet(inputModelNode->GetMesh());
-    locator->BuildLocator();
-
-    double firstPoint[3] = { 0.0 };
-    curvePointsWorld->GetPoint(0, firstPoint);    
-    vtkIdType firstPointId0 = locator->FindClosestPoint(firstPoint);
-    vtkMath::Add(firstPoint, planeNormal, firstPoint);
-    vtkIdType firstPointId1 = locator->FindClosestPoint(firstPoint);
-
-    vtkNew<vtkDijkstraGraphGeodesicPath> firstGraph;
-    firstGraph->SetEndVertex(firstPointId0);
-    firstGraph->SetStartVertex(firstPointId1);
-    firstGraph->SetInputData(inputModelNode->GetMesh());
-    firstGraph->Update();
-
-    vtkPolyData* firstPath = firstGraph->GetOutput();
-    for (int i = 1; i < firstPath->GetNumberOfPoints(); ++i)
-      {
-      double point[3] = { 0.0 };
-      firstPath->GetPoint(i, point);
-      tempPointsWorld->InsertNextPoint(point);
-      }
-
-    double lastPoint[3] = { 0.0 };
-    curvePointsWorld->GetPoint(curvePointsWorld->GetNumberOfPoints() - 1, lastPoint);
-    vtkIdType lastPointId0 = locator->FindClosestPoint(lastPoint);
-    vtkMath::Add(lastPoint, planeNormal, lastPoint);
-    vtkIdType lastPointId1 = locator->FindClosestPoint(lastPoint);
-
-    vtkNew<vtkDijkstraGraphGeodesicPath> lastGraph;
-    lastGraph->SetEndVertex(lastPointId1);
-    lastGraph->SetStartVertex(lastPointId0);
-    lastGraph->SetInputData(inputModelNode->GetMesh());
-    lastGraph->Update();
-
-    vtkPolyData* lastPath = lastGraph->GetOutput();
-    for (int i = 1; i < lastPath->GetNumberOfPoints(); ++i)
-      {
-      double point[3] = { 0.0 };
-      lastPath->GetPoint(i, point);
-      tempPointsWorld->InsertNextPoint(point);
-      }
-
-    //double lastPoint[3] = { 0.0 };
-    //curvePointsWorld->GetPoint(curvePointsWorld->GetNumberOfPoints()-1, lastPoint);
-    //vtkMath::Add(lastPoint, planeNormal, lastPoint);
-    //tempPointsWorld->InsertNextPoint(lastPoint);
-
-    curvePointsWorld = tempPointsWorld;
-    }
-
-  this->ModelToWorldTransformFilter->SetInputData(inputModelNode->GetPolyData());
+ 
+  this->InputModelToWorldTransformFilter->SetInputData(inputModelNode->GetPolyData());
   if (inputModelNode->GetParentTransformNode())
     {
-    inputModelNode->GetParentTransformNode()->GetTransformToWorld(this->ModelToWorldTransform);
+    inputModelNode->GetParentTransformNode()->GetTransformToWorld(this->InputModelToWorldTransform);
     }
   else
     {
-    this->ModelToWorldTransform->Identity();
+    this->InputModelToWorldTransform->Identity();
     }
 
-  this->SelectionFilter->SetInputConnection(this->ModelToWorldTransformFilter->GetOutputPort());
-  this->SelectionFilter->SetLoop(curvePointsWorld);
-  this->CleanFilter->Update();
+  this->SelectionFilter->SetInputConnection(this->InputModelToWorldTransformFilter->GetOutputPort());
+  this->SelectionFilter->SetLoop(curveNode->GetCurvePointsWorld());
+
+  if (outputModelNode->GetParentTransformNode())
+    {
+    outputModelNode->GetParentTransformNode()->GetTransformFromWorld(this->OutputWorldToModelTransform);
+    }
+  else
+    {
+    this->OutputWorldToModelTransform->Identity();
+    }
+  this->OutputWorldToModelTransformFilter->Update();
 
   vtkNew<vtkPolyData> outputMesh;
-  outputMesh->DeepCopy(this->CleanFilter->GetOutput());
-  
+  outputMesh->DeepCopy(this->OutputWorldToModelTransformFilter->GetOutput());
+
   MRMLNodeModifyBlocker blocker(outputModelNode);
   outputModelNode->SetAndObserveMesh(outputMesh);
   outputModelNode->InvokeCustomModifiedEvent(vtkMRMLModelNode::MeshModifiedEvent);

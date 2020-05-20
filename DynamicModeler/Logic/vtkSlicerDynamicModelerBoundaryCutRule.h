@@ -74,7 +74,14 @@ protected:
   void GetPositionForClosestPointRegion(vtkMRMLDynamicModelerNode* surfaceEditorNode, double closestPointRegion_World[3]);
 
 protected:
-  vtkSmartPointer<vtkTransformPolyDataFilter>   TransformPolyDataFilter;
+  vtkSmartPointer<vtkGeneralTransform>        InputModelToWorldTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> InputModelToWorldTransformFilter;
+
+  vtkSmartPointer<vtkClipPolyData>            ClipPolyData;
+  vtkSmartPointer<vtkConnectivityFilter>      Connectivity;
+
+  vtkSmartPointer<vtkGeneralTransform>        OutputWorldToModelTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> OutputWorldToModelTransformFilter;
 };
 
 #endif // __vtkSlicerDynamicModelerBoundaryCutRule_h

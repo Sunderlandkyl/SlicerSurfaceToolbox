@@ -31,34 +31,16 @@
 
 // VTK includes
 #include <vtkAppendPolyData.h>
+#include <vtkCellData.h>
 #include <vtkCleanPolyData.h>
-#include <vtkClipClosedSurface.h>
-#include <vtkClipPolyData.h>
-#include <vtkCollection.h>
 #include <vtkCommand.h>
-#include <vtkConnectivityFilter.h>
-#include <vtkCutter.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkExtractPolyDataGeometry.h>
-#include <vtkFeatureEdges.h>
 #include <vtkGeneralTransform.h>
-#include <vtkImplicitBoolean.h>
 #include <vtkIntArray.h>
-#include <vtkMergeCells.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlane.h>
-#include <vtkPlaneCollection.h>
-#include <vtkReverseSense.h>
-#include <vtkSelectPolyData.h>
+#include <vtkPointData.h>
+#include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
-#include <vtkStripper.h>
-#include <vtkThreshold.h>
-#include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
-
-#include <vtkPointData.h>
-#include <vtkCellData.h>
 
 //----------------------------------------------------------------------------
 vtkRuleNewMacro(vtkSlicerDynamicModelerAppendRule);
@@ -96,6 +78,16 @@ vtkSlicerDynamicModelerAppendRule::vtkSlicerDynamicModelerAppendRule()
     false
     );
   this->OutputNodeInfo.push_back(outputModel);
+
+  this->AppendFilter = vtkSmartPointer<vtkAppendPolyData>::New();
+
+  this->CleanFilter = vtkSmartPointer<vtkCleanPolyData>::New();
+  this->CleanFilter->SetInputConnection(this->AppendFilter->GetOutputPort());
+
+  this->OutputWorldToModelTransform = vtkSmartPointer<vtkGeneralTransform>::New();
+  this->OutputWorldToModelTransformFilter = vtkSmartPointer<vtkTransformPolyDataFilter>::New();
+  this->OutputWorldToModelTransformFilter->SetInputConnection(this->CleanFilter->GetOutputPort());
+  this->OutputWorldToModelTransformFilter->SetTransform(this->OutputWorldToModelTransform);
 }
 
 //----------------------------------------------------------------------------
@@ -123,9 +115,9 @@ bool vtkSlicerDynamicModelerAppendRule::RunInternal(vtkMRMLDynamicModelerNode* s
     // Nothing to output
     return true;
     }
-
-  vtkNew<vtkAppendPolyData> appendFilter;
   
+  this->AppendFilter->RemoveAllInputs();
+
   std::string nthInputReferenceRole = this->GetNthInputNodeReferenceRole(0);
   for (int i = 0; i < surfaceEditorNode->GetNumberOfNodeReferences(nthInputReferenceRole.c_str()); ++i)
     {
@@ -135,25 +127,36 @@ bool vtkSlicerDynamicModelerAppendRule::RunInternal(vtkMRMLDynamicModelerNode* s
       {
       continue;
       }
-    appendFilter->AddInputData(modelNode->GetPolyData());
+
+    vtkNew<vtkGeneralTransform> modelToWorldTransform;
+    if (modelNode->GetParentTransformNode())
+      {
+      modelNode->GetParentTransformNode()->GetTransformToWorld(modelToWorldTransform);
+      }
+
+    vtkNew<vtkTransformPolyDataFilter> modelToWorldTransformFilter;
+    modelToWorldTransformFilter->SetInputData(modelNode->GetPolyData());
+    modelToWorldTransformFilter->SetTransform(modelToWorldTransform);
+    this->AppendFilter->AddInputConnection(modelToWorldTransformFilter->GetOutputPort());
     }
 
-  vtkNew<vtkCleanPolyData> cleanFilter;
-  cleanFilter->SetInputConnection(appendFilter->GetOutputPort());
-  cleanFilter->Update();
-  
-  vtkNew<vtkPolyData> outputPolyData;
-  outputPolyData->DeepCopy(cleanFilter->GetOutput());
-  this->RemoveDuplicateCells(outputPolyData);
-
-  if (outputModelNode->GetPolyData())
+  if (outputModelNode->GetParentTransformNode())
     {
-    outputModelNode->GetPolyData()->DeepCopy(outputPolyData);
+    outputModelNode->GetParentTransformNode()->GetTransformFromWorld(this->OutputWorldToModelTransform);
     }
   else
     {
-    outputModelNode->SetAndObserveMesh(outputPolyData);
+    this->OutputWorldToModelTransform->Identity();
     }
+  this->OutputWorldToModelTransformFilter->Update();
+
+  vtkNew<vtkPolyData> outputPolyData;
+  outputPolyData->DeepCopy(this->OutputWorldToModelTransformFilter->GetOutput());
+  this->RemoveDuplicateCells(outputPolyData);
+
+  MRMLNodeModifyBlocker blocker(outputModelNode);
+  outputModelNode->SetAndObservePolyData(outputPolyData);
+  outputModelNode->InvokeCustomModifiedEvent(vtkMRMLModelNode::MeshModifiedEvent);
 
   return true;
 }

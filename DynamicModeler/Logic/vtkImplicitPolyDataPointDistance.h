@@ -1,50 +1,32 @@
-/*=========================================================================
+/*==============================================================================
 
-  Program:   Visualization Toolkit
-  Module:    vtkImplicitPolyDataPointDistance.h
+  Copyright (c) Laboratory for Percutaneous Surgery (PerkLab)
+  Queen's University, Kingston, ON, Canada. All Rights Reserved.
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+  See COPYRIGHT.txt
+  or http://www.slicer.org/copyright/copyright.txt for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
 
-=========================================================================*/
-/**
- * @class   vtkImplicitPolyDataPointDistance
- *
- *
- * Implicit function that computes the distance from a point x to the
- * nearest point p on an input vtkPolyData. The sign of the function
- * is set to the sign of the dot product between the angle-weighted
- * pseudonormal at the nearest surface point and the vector x - p.
- * Points interior to the geometry have a negative distance, points on
- * the exterior have a positive distance, and points on the input
- * vtkPolyData have a distance of zero. The gradient of the function
- * is the angle-weighted pseudonormal at the nearest point.
- *
- * Baerentzen, J. A. and Aanaes, H. (2005). Signed distance
- * computation using the angle weighted pseudonormal. IEEE
- * Transactions on Visualization and Computer Graphics, 11:243-253.
- *
- * This code was contributed in the VTK Journal paper:
- * "Boolean Operations on Surfaces in VTK Without External Libraries"
- * by Cory Quammen, Chris Weigle C., Russ Taylor
- * http://hdl.handle.net/10380/3262
- * http://www.midasjournal.org/browse/publication/797
-*/
+  This file was originally developed by Kyle Sunderland, PerkLab, Queen's University
+  and was supported through CANARIE's Research Software Program, Cancer
+  Care Ontario, OpenAnatomy, and Brigham and Women's Hospital through NIH grant R01MH112748.
+
+==============================================================================*/
 
 #ifndef vtkImplicitPolyDataPointDistance_h
 #define vtkImplicitPolyDataPointDistance_h
 
 #include "vtkSlicerDynamicModelerModuleLogicExport.h"
 
+// VTK includes
 #include "vtkImplicitFunction.h"
-
-class vtkPointLocator;
-class vtkPolyData;
+#include <vtkPointLocator.h>
+#include <vtkPolyData.h>
 
 class VTK_SLICER_DYNAMICMODELER_MODULE_LOGIC_EXPORT vtkImplicitPolyDataPointDistance : public vtkImplicitFunction
 {
@@ -53,84 +35,41 @@ public:
   vtkTypeMacro(vtkImplicitPolyDataPointDistance,vtkImplicitFunction);
   void PrintSelf(ostream& os, vtkIndent indent) override;
 
-  /**
-   * Return the MTime also considering the Input dependency.
-   */
+   /// Return the MTime also considering the Input dependency.
   vtkMTimeType GetMTime() override;
 
-  /**
-   * Evaluate plane equation of nearest triangle to point x[3].
-   */
+  /// Evaluate the squared distance to the closest point in the input dataset.
   using vtkImplicitFunction::EvaluateFunction;
   double EvaluateFunction(double x[3]) override;
 
-  /**
- * Evaluate function gradient at position x-y-z and pass back vector.
- * You should generally not call this method directly, you should use
- * FunctionGradient() instead.  This method must be implemented by
- * any derived class.
- */
+  /// This function does not currently return the gradient.
   void EvaluateGradient(double x[3], double g[3]) override;
 
-  /**
-   * Set the input vtkPolyData used for the implicit function
-   * evaluation.  Passes input through an internal instance of
-   * vtkTriangleFilter to remove vertices and lines, leaving only
-   * triangular polygons for evaluation as implicit planes.
-   */
+  /// Set the input polydata to use in the locator.
   void SetInput(vtkPolyData *input);
 
-  //@{
-  /**
-   * Set/get the function value to use if no input vtkPolyData
-   * specified.
-   */
+   /// Set/get the function value to use if no input vtkPolyData specified.
   vtkSetMacro(NoValue, double);
   vtkGetMacro(NoValue, double);
-  //@}
 
-  //@{
-  /**
-   * Set/get the function gradient to use if no input vtkPolyData
-   * specified.
-   */
+  /// Set/get the function gradient to use if no input vtkPolyData
   vtkSetVector3Macro(NoGradient, double);
   vtkGetVector3Macro(NoGradient, double);
-  //@}
 
-  //@{
-  /**
-   * Set/get the closest point to use if no input vtkPolyData
-   * specified.
-   */
-  vtkSetVector3Macro(NoClosestPoint, double);
-  vtkGetVector3Macro(NoClosestPoint, double);
-  //@}
-
-  //@{
-  /**
-   * Set/get the tolerance usued for the locator.
-   */
+  /// Set/get the tolerance usued for the locator.
   vtkGetMacro(Tolerance, double);
   vtkSetMacro(Tolerance, double);
-  //@}
 
 protected:
   vtkImplicitPolyDataPointDistance();
   ~vtkImplicitPolyDataPointDistance() override;
 
-  /**
-   * Create default locator. Used to create one when none is specified.
-   */
-  void CreateDefaultLocator(void);
+  double NoValue{ 0.0 };
+  double NoGradient[3]{ 0.0, 0.0, 0.0 };
+  double Tolerance{ 1e-12 };
 
-  double NoGradient[3];
-  double NoClosestPoint[3];
-  double NoValue;
-  double Tolerance;
-
-  vtkPolyData *Input;
-  vtkPointLocator *Locator;
+  vtkSmartPointer<vtkPolyData>     Input;
+  vtkSmartPointer<vtkPointLocator> Locator;
 
 private:
   vtkImplicitPolyDataPointDistance(const vtkImplicitPolyDataPointDistance&) = delete;

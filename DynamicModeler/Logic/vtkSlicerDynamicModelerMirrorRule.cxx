@@ -29,25 +29,12 @@
 #include <vtkMRMLTransformNode.h>
 
 // VTK includes
-#include <vtkAppendPolyData.h>
-#include <vtkClipClosedSurface.h>
-#include <vtkClipPolyData.h>
-#include <vtkCollection.h>
 #include <vtkCommand.h>
-#include <vtkCutter.h>
-#include <vtkDataSetAttributes.h>
-#include <vtkFeatureEdges.h>
 #include <vtkGeneralTransform.h>
-#include <vtkImplicitBoolean.h>
 #include <vtkIntArray.h>
-#include <vtkObjectFactory.h>
-#include <vtkPlane.h>
-#include <vtkPlaneCollection.h>
 #include <vtkReverseSense.h>
 #include <vtkSmartPointer.h>
 #include <vtkStringArray.h>
-#include <vtkStripper.h>
-#include <vtkThreshold.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 

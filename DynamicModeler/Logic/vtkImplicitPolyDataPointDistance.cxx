@@ -29,19 +29,8 @@ vtkStandardNewMacro(vtkImplicitPolyDataPointDistance);
 //-----------------------------------------------------------------------------
 vtkImplicitPolyDataPointDistance::vtkImplicitPolyDataPointDistance()
 {
-  this->NoClosestPoint[0] = 0.0;
-  this->NoClosestPoint[1] = 0.0;
-  this->NoClosestPoint[2] = 0.0;
-
-  this->NoGradient[0] = 0.0;
-  this->NoGradient[1] = 0.0;
-  this->NoGradient[2] = 1.0;
-
-  this->NoValue = 0.0;
-
   this->Input = nullptr;
-  this->Locator = nullptr;
-  this->Tolerance = 1e-12;
+  this->Locator = vtkSmartPointer<vtkPointLocator>::New();
 }
 
 //-----------------------------------------------------------------------------
@@ -49,16 +38,11 @@ void vtkImplicitPolyDataPointDistance::SetInput(vtkPolyData* input)
 {
   if ( this->Input != input )
     {
-    //vtkSmartPointer<vtkPolyData> inputPolyData = vtkSmartPointer<vtkPolyData>::New();
-    //inputPolyData->DeepCopy(input);
     this->Input = input;
-
-    //this->Input = inputPolyData;
 
     this->Input->BuildLinks();
     this->NoValue = this->Input->GetLength();
 
-    this->CreateDefaultLocator();
     this->Locator->SetDataSet(this->Input);
     this->Locator->SetTolerance(this->Tolerance);
     this->Locator->SetNumberOfPointsPerBucket(10);
@@ -83,38 +67,37 @@ vtkMTimeType vtkImplicitPolyDataPointDistance::GetMTime()
 }
 
 //-----------------------------------------------------------------------------
-vtkImplicitPolyDataPointDistance::~vtkImplicitPolyDataPointDistance()
-{
-  if ( this->Locator )
-    {
-    this->Locator->UnRegister(this);
-    this->Locator = nullptr;
-    }
-}
-
-//----------------------------------------------------------------------------
-void vtkImplicitPolyDataPointDistance::CreateDefaultLocator()
-{
-  if ( this->Locator == nullptr)
-  {
-    this->Locator = vtkPointLocator::New();
-  }
-}
+vtkImplicitPolyDataPointDistance::~vtkImplicitPolyDataPointDistance() = default;
 
 //-----------------------------------------------------------------------------
 double vtkImplicitPolyDataPointDistance::EvaluateFunction(double x[3])
 {
+  if (!this->Locator || !this->Input)
+    {
+    return this->NoValue;
+    }
+
   vtkIdType id = this->Locator->FindClosestPoint(x);
   double closestPoint[3] = { 0.0 };
-  this->Locator->GetDataSet()->GetPoint(id, closestPoint);
+  this->Input->GetPoint(id, closestPoint);
   return vtkMath::Distance2BetweenPoints(x, closestPoint);
 }
 
 //-----------------------------------------------------------------------------
 void vtkImplicitPolyDataPointDistance::EvaluateGradient(double x[3], double g[3])
 {
-  // TODO
-  vtkErrorMacro("EvaluateGradient not implemented!");
+  if (!this->Locator || !this->Input)
+    {
+    g[0] = this->NoGradient[0];
+    g[1] = this->NoGradient[1];
+    g[2] = this->NoGradient[2];
+    return;
+    }
+
+  vtkIdType id = this->Locator->FindClosestPoint(x);
+  double closestPoint[3] = { 0.0 };
+  this->Input->GetPoint(id, closestPoint);
+  vtkMath::Subtract(x, closestPoint, g);
 }
 
 
@@ -122,18 +105,16 @@ void vtkImplicitPolyDataPointDistance::EvaluateGradient(double x[3], double g[3]
 void vtkImplicitPolyDataPointDistance::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkImplicitFunction::PrintSelf(os,indent);
-
   os << indent << "NoValue: " << this->NoValue << "\n";
   os << indent << "NoGradient: (" << this->NoGradient[0] << ", "
      << this->NoGradient[1] << ", " << this->NoGradient[2] << ")\n";
   os << indent << "Tolerance: " << this->Tolerance << "\n";
-
   if (this->Input)
-  {
+    {
     os << indent << "Input : " << this->Input << "\n";
-  }
+    }
   else
-  {
+    {
     os << indent << "Input : (none)\n";
-  }
+    }
 }

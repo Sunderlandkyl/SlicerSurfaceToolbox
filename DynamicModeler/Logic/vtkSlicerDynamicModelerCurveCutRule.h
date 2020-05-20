@@ -35,16 +35,8 @@
 class vtkCleanPolyData;
 class vtkClipPolyData;
 class vtkConnectivityFilter;
-class vtkDataObject;
 class vtkGeneralTransform;
-class vtkGeometryFilter;
-class vtkImplicitBoolean;
 class vtkMRMLDynamicModelerNode;
-class vtkPlane;
-class vtkPolyData;
-class vtkReverseSense;
-class vtkThreshold;
-class vtkTransform;
 class vtkTransformPolyDataFilter;
 class vtkSelectPolyData;
 
@@ -72,12 +64,16 @@ protected:
   void operator=(const vtkSlicerDynamicModelerCurveCutRule&);
 
 protected:
-  vtkSmartPointer<vtkGeneralTransform>        ModelToWorldTransform;
-  vtkSmartPointer<vtkTransformPolyDataFilter> ModelToWorldTransformFilter;
+  vtkSmartPointer<vtkGeneralTransform>        InputModelToWorldTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> InputModelToWorldTransformFilter;
+
   vtkSmartPointer<vtkSelectPolyData>          SelectionFilter;
   vtkSmartPointer<vtkClipPolyData>            ClipFilter;
   vtkSmartPointer<vtkConnectivityFilter>      ConnectivityFilter;
   vtkSmartPointer<vtkCleanPolyData>           CleanFilter;
+
+  vtkSmartPointer<vtkGeneralTransform>        OutputWorldToModelTransform;
+  vtkSmartPointer<vtkTransformPolyDataFilter> OutputWorldToModelTransformFilter;
 };
 
 #endif // __vtkSlicerDynamicModelerCurveCutRule_h

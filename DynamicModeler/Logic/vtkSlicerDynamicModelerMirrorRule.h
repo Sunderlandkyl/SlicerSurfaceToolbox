@@ -32,16 +32,9 @@
 #include <string>
 #include <vector>
 
-class vtkClipPolyData;
-class vtkDataObject;
 class vtkGeneralTransform;
-class vtkGeometryFilter;
-class vtkImplicitBoolean;
 class vtkMRMLDynamicModelerNode;
-class vtkPlane;
-class vtkPolyData;
 class vtkReverseSense;
-class vtkThreshold;
 class vtkTransform;
 class vtkTransformPolyDataFilter;
 
